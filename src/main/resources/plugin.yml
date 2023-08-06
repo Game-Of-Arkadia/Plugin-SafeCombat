@@ -1,0 +1,5 @@
+name: SafeCombat
+version: '${project.version}'
+main: fr.keykatyu.safecombat.Main
+api-version: '1.20'
+description: '${project.description}'
