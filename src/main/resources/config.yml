@@ -1,0 +1,9 @@
+messages:
+  prefix: "&b&l[&9SafeCombat&b&l]"
+  fight:
+    cant-enter-zone: "&cVous êtes en &lcombat &r&c! Vous ne pouvez pas entrer dans cette zone."
+    enter: "&6Vous êtes en combat, n'essayez pas de fuir."
+    finished: "&aVous n'êtes plus en combat."
+pvp:
+  # Time, in seconds, to stop be considered in PvP
+  duration: 5
