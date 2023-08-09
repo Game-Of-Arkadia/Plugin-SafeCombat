@@ -5,18 +5,18 @@ import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
+import java.util.HashMap;
 
 public class CombatManager {
 
-    private final List<String> fightingPlayers;
+    private final HashMap<String, PlayerFightingTask> fightingPlayers;
 
     public CombatManager() {
-        fightingPlayers = new ArrayList<>();
+        fightingPlayers = new HashMap<>();
     }
 
-    public List<String> getFightingPlayers() {
+    public HashMap<String, PlayerFightingTask> getFightingPlayers() {
         return fightingPlayers;
     }
 
@@ -25,8 +25,7 @@ public class CombatManager {
      * @param player The player
      */
     public void setPlayerFighting(Player player) {
-        Main.getCombatManager().getFightingPlayers().add(player.getName());
-        new PlayerFightingTask(player);
+        Main.getCombatManager().getFightingPlayers().put(player.getName(), new PlayerFightingTask(player));
         player.sendMessage(Util.prefix() + Config.getString("messages.fight.enter"));
         player.sendTitle("§4§l⚔", "", 5, 25, 5);
     }
@@ -37,7 +36,15 @@ public class CombatManager {
      * @return true or false
      */
     public boolean isFighting(Player player) {
-        return getFightingPlayers().contains(player.getName());
+        return fightingPlayers.containsKey(player.getName());
+    }
+
+    /**
+     * Update starting instant (if the player is damaged again)
+     * @param player The player
+     */
+    public void updateInstant(Player player) {
+        fightingPlayers.get(player.getName()).setStartingInstant(Instant.now());
     }
 
 }
