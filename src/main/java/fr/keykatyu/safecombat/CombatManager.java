@@ -27,7 +27,6 @@ public class CombatManager {
     public void setPlayerFighting(Player player) {
         Main.getCombatManager().getFightingPlayers().put(player.getName(), new PlayerFightingTask(player));
         player.sendMessage(Util.prefix() + Config.getString("messages.fight.enter"));
-        player.sendTitle("§4§l⚔", "", 5, 25, 5);
     }
 
     /**
