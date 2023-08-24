@@ -18,18 +18,22 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getDamager() instanceof Player killer)) return;
-        if(!(e.getEntity() instanceof Player player)) return;
+        if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
-        if(!Main.getCombatManager().isFighting(killer) && !killer.getGameMode().equals(GameMode.CREATIVE)) {
-            Main.getCombatManager().setPlayerFighting(killer);
-        } else if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
-            Main.getCombatManager().updateInstant(killer);
+        if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
+            if(!Main.getCombatManager().isFighting(killer)) {
+                Main.getCombatManager().setPlayerFighting(killer);
+            } else {
+                Main.getCombatManager().updateInstant(killer);
+            }
         }
 
-        if(!Main.getCombatManager().isFighting(player) && !player.getGameMode().equals(GameMode.CREATIVE)) {
-            Main.getCombatManager().setPlayerFighting(player);
-        } else if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
-            Main.getCombatManager().updateInstant(player);
+        if(!player.getGameMode().equals(GameMode.CREATIVE)) {
+            if(!Main.getCombatManager().isFighting(player)) {
+                Main.getCombatManager().setPlayerFighting(player);
+            } else {
+                Main.getCombatManager().updateInstant(player);
+            }
         }
     }
 
