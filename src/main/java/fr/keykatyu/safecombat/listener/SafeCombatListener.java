@@ -1,6 +1,7 @@
 package fr.keykatyu.safecombat.listener;
 
 import fr.keykatyu.safecombat.Main;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,14 +19,16 @@ public class SafeCombatListener implements Listener {
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getDamager() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player)) return;
-        if(!Main.getCombatManager().isFighting(killer)) {
+
+        if(!Main.getCombatManager().isFighting(killer) && !killer.getGameMode().equals(GameMode.CREATIVE)) {
             Main.getCombatManager().setPlayerFighting(killer);
-        } else {
+        } else if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
             Main.getCombatManager().updateInstant(killer);
         }
-        if(!Main.getCombatManager().isFighting(player)) {
+
+        if(!Main.getCombatManager().isFighting(player) && !player.getGameMode().equals(GameMode.CREATIVE)) {
             Main.getCombatManager().setPlayerFighting(player);
-        } else {
+        } else if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
             Main.getCombatManager().updateInstant(player);
         }
     }
