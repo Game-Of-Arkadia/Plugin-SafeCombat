@@ -7,17 +7,24 @@ import org.bukkit.entity.Player;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 
 public class CombatManager {
 
     private final HashMap<String, PlayerFightingTask> fightingPlayers;
+    private final List<String> playersToKill;
 
-    public CombatManager() {
+    public CombatManager(List<String> playersToKill) {
+        this.playersToKill = playersToKill;
         fightingPlayers = new HashMap<>();
     }
 
     public HashMap<String, PlayerFightingTask> getFightingPlayers() {
         return fightingPlayers;
+    }
+
+    public List<String> getPlayersToKill() {
+        return playersToKill;
     }
 
     /**

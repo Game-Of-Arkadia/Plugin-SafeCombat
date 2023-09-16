@@ -7,3 +7,5 @@ messages:
 pvp:
   # Time, in seconds, to stop be considered in PvP
   duration: 5
+  # Time, in seconds, to be considered to have leaved the fight
+  disconnection: 10

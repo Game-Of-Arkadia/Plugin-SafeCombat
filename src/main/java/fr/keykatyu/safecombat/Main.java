@@ -8,12 +8,17 @@ import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.session.SessionManager;
 import fr.keykatyu.safecombat.listener.EnterSafeZoneFlagHandler;
 import fr.keykatyu.safecombat.listener.SafeCombatListener;
+import fr.keykatyu.safecombat.util.Config;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Main extends JavaPlugin {
 
     private static Main INSTANCE;
     private static CombatManager combatManager;
+    private static final List<String> kickedPlayers = new ArrayList<>();
     public static StateFlag ENTER_SAFE_ZONE_PVP;
 
     @Override
@@ -39,11 +44,19 @@ public final class Main extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveConfig();
 
-        combatManager = new CombatManager();
+        combatManager = new CombatManager(Config.getStringList("playerstokill"));
         getServer().getPluginManager().registerEvents(new SafeCombatListener(), this);
+
         // Register WorldGuard flag handler
         SessionManager sessionManager = WorldGuard.getInstance().getPlatform().getSessionManager();
         sessionManager.registerHandler(EnterSafeZoneFlagHandler.FACTORY, null);
+    }
+
+    @Override
+    public void onDisable() {
+        if(!combatManager.getPlayersToKill().isEmpty()) {
+            Config.setStringList("playerstokill", combatManager.getPlayersToKill());
+        }
     }
 
     public static Main getInstance() {
@@ -53,4 +66,9 @@ public final class Main extends JavaPlugin {
     public static CombatManager getCombatManager() {
         return combatManager;
     }
+
+    public static List<String> getKickedPlayers() {
+        return kickedPlayers;
+    }
+
 }

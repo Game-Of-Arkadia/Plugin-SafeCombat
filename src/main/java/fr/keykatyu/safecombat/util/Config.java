@@ -66,4 +66,9 @@ public class Config {
         Main.getInstance().saveConfig();
     }
 
+    public static void setStringList(String path, List<String> list) {
+        Main.getInstance().getConfig().set(path, list);
+        Main.getInstance().saveConfig();
+    }
+
 }
