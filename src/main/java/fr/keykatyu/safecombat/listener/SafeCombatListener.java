@@ -18,7 +18,7 @@ public class SafeCombatListener implements Listener {
      * Make player and killer in PvP
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getDamager() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
