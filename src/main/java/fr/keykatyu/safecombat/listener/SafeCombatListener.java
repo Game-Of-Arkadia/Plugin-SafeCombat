@@ -1,5 +1,8 @@
 package fr.keykatyu.safecombat.listener;
 
+import com.massivecraft.factions.FPlayer;
+import com.massivecraft.factions.FPlayers;
+import com.massivecraft.factions.struct.Relation;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
 import org.bukkit.GameMode;
@@ -24,6 +27,11 @@ public class SafeCombatListener implements Listener {
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getDamager() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
+
+        // Check if players are ally
+        FPlayer fKiller = FPlayers.getInstance().getByPlayer(killer);
+        FPlayer fPlayer = FPlayers.getInstance().getByPlayer(player);
+        if(fKiller.getRelationTo(fPlayer).isAtLeast(Relation.ALLY)) return;
 
         if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
             if(!Main.getCombatManager().isFighting(killer)) {
@@ -51,6 +59,11 @@ public class SafeCombatListener implements Listener {
         Arrow a = (Arrow) e.getProjectile();
         if(!(a.getShooter() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
+
+        // Check if players are ally
+        FPlayer fKiller = FPlayers.getInstance().getByPlayer(killer);
+        FPlayer fPlayer = FPlayers.getInstance().getByPlayer(player);
+        if(fKiller.getRelationTo(fPlayer).isAtLeast(Relation.ALLY)) return;
 
         if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
             if(!Main.getCombatManager().isFighting(killer)) {
