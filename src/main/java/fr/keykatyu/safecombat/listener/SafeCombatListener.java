@@ -3,11 +3,13 @@ package fr.keykatyu.safecombat.listener;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -21,6 +23,33 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getDamager() instanceof Player killer)) return;
+        if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
+
+        if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
+            if(!Main.getCombatManager().isFighting(killer)) {
+                Main.getCombatManager().setPlayerFighting(killer);
+            } else {
+                Main.getCombatManager().updateInstant(killer);
+            }
+        }
+
+        if(!player.getGameMode().equals(GameMode.CREATIVE)) {
+            if(!Main.getCombatManager().isFighting(player)) {
+                Main.getCombatManager().setPlayerFighting(player);
+            } else {
+                Main.getCombatManager().updateInstant(player);
+            }
+        }
+    }
+
+    /**
+     * Make player and killer in PvP if it's a bow shoot
+     * @param e The event
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerFightPlayerBow(EntityShootBowEvent e) {
+        Arrow a = (Arrow) e.getProjectile();
+        if(!(a.getShooter() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
         if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
