@@ -23,7 +23,7 @@ public class SafeCombatListener implements Listener {
      * Make player and killer in PvP
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getDamager() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
@@ -54,7 +54,7 @@ public class SafeCombatListener implements Listener {
      * Make player and killer in PvP if it's a bow shoot
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerFightPlayerBow(EntityShootBowEvent e) {
         Arrow a = (Arrow) e.getProjectile();
         if(!(a.getShooter() instanceof Player killer)) return;
