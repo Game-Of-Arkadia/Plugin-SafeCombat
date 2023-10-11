@@ -56,8 +56,8 @@ public class SafeCombatListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerFightPlayerBow(EntityShootBowEvent e) {
-        Arrow a = (Arrow) e.getProjectile();
-        if(!(a.getShooter() instanceof Player killer)) return;
+        if(!(e.getProjectile() instanceof Arrow arrow)) return;
+        if(!(arrow.getShooter() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
         // Check if players are ally
