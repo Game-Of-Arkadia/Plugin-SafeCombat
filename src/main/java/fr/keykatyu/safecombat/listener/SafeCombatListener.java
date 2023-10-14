@@ -25,40 +25,17 @@ public class SafeCombatListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
-        if(!(e.getDamager() instanceof Player killer)) return;
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
-        // Check if players are ally
-        FPlayer fKiller = FPlayers.getInstance().getByPlayer(killer);
-        FPlayer fPlayer = FPlayers.getInstance().getByPlayer(player);
-        if(fKiller.getRelationTo(fPlayer).isAtLeast(Relation.ALLY)) return;
-
-        if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
-            if(!Main.getCombatManager().isFighting(killer)) {
-                Main.getCombatManager().setPlayerFighting(killer);
-            } else {
-                Main.getCombatManager().updateInstant(killer);
-            }
+        Player killer;
+        if(e.getDamager() instanceof Arrow arrow) {
+            if(!(arrow.getShooter() instanceof Player k)) return;
+            killer = k;
+        } else if (e.getDamager() instanceof Player p) {
+            killer = p;
+        } else {
+            return;
         }
-
-        if(!player.getGameMode().equals(GameMode.CREATIVE)) {
-            if(!Main.getCombatManager().isFighting(player)) {
-                Main.getCombatManager().setPlayerFighting(player);
-            } else {
-                Main.getCombatManager().updateInstant(player);
-            }
-        }
-    }
-
-    /**
-     * Make player and killer in PvP if it's a bow shoot
-     * @param e The event
-     */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlayerFightPlayerBow(EntityShootBowEvent e) {
-        if(!(e.getProjectile() instanceof Arrow arrow)) return;
-        if(!(arrow.getShooter() instanceof Player killer)) return;
-        if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
         // Check if players are ally
         FPlayer fKiller = FPlayers.getInstance().getByPlayer(killer);
