@@ -44,7 +44,7 @@ public class PlayerFightingTask implements Runnable {
         }
     }
 
-    private void cancel() {
+    public void cancel() {
         Bukkit.getScheduler().cancelTask(taskId);
     }
 
