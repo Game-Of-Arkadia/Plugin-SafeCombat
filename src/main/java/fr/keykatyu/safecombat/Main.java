@@ -54,9 +54,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if(!combatManager.getPlayersToKill().isEmpty()) {
-            Config.setStringList("playerstokill", combatManager.getPlayersToKill());
-        }
+        Config.setStringList("playerstokill", combatManager.getPlayersToKill());
     }
 
     public static Main getInstance() {
