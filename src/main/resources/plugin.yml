@@ -6,3 +6,8 @@ description: '${project.description}'
 depend:
   - WorldEdit
   - WorldGuard
+commands:
+  protection:
+    description: Manage player PvP protection.
+    aliases:
+      - pvp-protection

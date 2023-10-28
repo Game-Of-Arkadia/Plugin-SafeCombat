@@ -6,7 +6,7 @@
 
     <groupId>fr.keykatyu</groupId>
     <artifactId>SafeCombat</artifactId>
-    <version>1.0.6-release</version>
+    <version>1.0.7-release</version>
     <packaging>jar</packaging>
 
     <name>SafeCombat</name>
@@ -84,5 +84,12 @@
             <version>4.1.2-STABLE</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.13.0</version>
+        </dependency>
+
     </dependencies>
 </project>

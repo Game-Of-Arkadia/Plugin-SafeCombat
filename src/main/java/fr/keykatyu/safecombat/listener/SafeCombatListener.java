@@ -5,6 +5,8 @@ import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.struct.Relation;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
+import fr.keykatyu.safecombat.util.Config;
+import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
@@ -16,6 +18,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 public class SafeCombatListener implements Listener {
 
     /**
@@ -26,26 +31,32 @@ public class SafeCombatListener implements Listener {
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
-        Player killer;
+        Player damager;
         if(e.getDamager() instanceof Arrow arrow) {
             if(!(arrow.getShooter() instanceof Player k)) return;
-            killer = k;
+            damager = k;
         } else if (e.getDamager() instanceof Player p) {
-            killer = p;
+            damager = p;
         } else {
             return;
         }
 
+        // Cancel fight if the player or the damager is protected
+        if(Main.getCombatManager().isProtected(damager) || Main.getCombatManager().isProtected(player)) {
+            e.setCancelled(true);
+            return;
+        }
+
         // Check if players are ally
-        FPlayer fKiller = FPlayers.getInstance().getByPlayer(killer);
+        FPlayer fKiller = FPlayers.getInstance().getByPlayer(damager);
         FPlayer fPlayer = FPlayers.getInstance().getByPlayer(player);
         if(fKiller.getRelationTo(fPlayer).isAtLeast(Relation.ALLY)) return;
 
-        if(!killer.getGameMode().equals(GameMode.CREATIVE)) {
-            if(!Main.getCombatManager().isFighting(killer)) {
-                Main.getCombatManager().setPlayerFighting(killer);
+        if(!damager.getGameMode().equals(GameMode.CREATIVE)) {
+            if(!Main.getCombatManager().isFighting(damager)) {
+                Main.getCombatManager().setPlayerFighting(damager);
             } else {
-                Main.getCombatManager().updateInstant(killer);
+                Main.getCombatManager().updateInstant(damager);
             }
         }
 
@@ -76,6 +87,16 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoins(PlayerJoinEvent e) {
         Player player = e.getPlayer();
+
+        // Newbie / PvP protection
+        if(player.getLastPlayed() == 0) {
+            Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.newbie-protection"), ChronoUnit.HOURS));
+        } else if (Main.getCombatManager().isProtected(player)) {
+            Main.getCombatManager().getProtectedPlayers().get(player.getUniqueId()).getBossBar().addPlayer(player);
+            player.sendMessage(Util.prefix() + Config.getString("messages.protection.join"));
+        }
+
+        // Combat disconnection
         if(!Main.getCombatManager().getPlayersToKill().contains(player.getName())) return;
         Main.getCombatManager().getPlayersToKill().remove(player.getName());
         e.setJoinMessage("§6§l" + player.getName() + " §es'est reconnecté après sa déconnexion en combat.");

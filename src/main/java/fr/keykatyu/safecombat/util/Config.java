@@ -5,6 +5,7 @@ import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -20,6 +21,10 @@ public class Config {
 
     public static List<String> getStringList(String path) {
         return Main.getInstance().getConfig().getStringList(path);
+    }
+
+    public static Map<String, Object> getMap(String path) {
+        return Main.getInstance().getConfig().getConfigurationSection(path).getValues(false);
     }
 
     public static List<Material> getMaterialList(String path) {
@@ -68,6 +73,13 @@ public class Config {
 
     public static void setStringList(String path, List<String> list) {
         Main.getInstance().getConfig().set(path, list);
+        Main.getInstance().saveConfig();
+    }
+
+    public static void setMap(String path, Map<String, Object> map) {
+        for(Map.Entry<String, Object> entry : map.entrySet()) {
+            Main.getInstance().getConfig().set(path + "." + entry.getKey(), entry.getValue());
+        }
         Main.getInstance().saveConfig();
     }
 

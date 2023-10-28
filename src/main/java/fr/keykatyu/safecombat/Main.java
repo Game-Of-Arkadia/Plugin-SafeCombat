@@ -6,13 +6,17 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.session.SessionManager;
+import fr.keykatyu.safecombat.command.ProtectionCommand;
 import fr.keykatyu.safecombat.listener.EnterSafeZoneFlagHandler;
 import fr.keykatyu.safecombat.listener.SafeCombatListener;
 import fr.keykatyu.safecombat.util.Config;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class Main extends JavaPlugin {
 
@@ -44,8 +48,9 @@ public final class Main extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveConfig();
 
-        combatManager = new CombatManager(Config.getStringList("playerstokill"));
-        getServer().getPluginManager().registerEvents(new SafeCombatListener(), this);
+        getCommand("protection").setExecutor(new ProtectionCommand());
+        combatManager = new CombatManager(Config.getStringList("playerstokill"), Config.getMap("protected-players"));
+        Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
 
         // Register WorldGuard flag handler
         SessionManager sessionManager = WorldGuard.getInstance().getPlatform().getSessionManager();
@@ -55,6 +60,9 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         Config.setStringList("playerstokill", combatManager.getPlayersToKill());
+        Map<String, Object> protectedPlayers = new HashMap<>();
+        combatManager.getProtectedPlayers().forEach((uuid, task) -> protectedPlayers.put(uuid.toString(), task.getProtectionEnd().toEpochMilli()));
+        Config.setMap("protected-players", protectedPlayers);
     }
 
     public static Main getInstance() {
