@@ -3,10 +3,7 @@ package fr.keykatyu.safecombat.util;
 import fr.keykatyu.safecombat.Main;
 import org.bukkit.Material;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * CONFIG class utility
@@ -24,7 +21,10 @@ public class Config {
     }
 
     public static Map<String, Object> getMap(String path) {
-        return Main.getInstance().getConfig().getConfigurationSection(path).getValues(false);
+        if(Main.getInstance().getConfig().getConfigurationSection(path) != null) {
+            return Main.getInstance().getConfig().getConfigurationSection(path).getValues(false);
+        }
+        return new HashMap<>();
     }
 
     public static List<Material> getMaterialList(String path) {
