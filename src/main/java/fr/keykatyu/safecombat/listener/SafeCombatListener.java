@@ -71,8 +71,17 @@ public class SafeCombatListener implements Listener {
         }
     }
 
+    /**
+     * Remove died player from fight mode and add him to the list
+     * for respawn protection erification
+     * @param e The event
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent e) {
+        Player player = e.getEntity();
+        if(Main.getCombatManager().isFighting(player)) {
+            Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
+        }
         if(e.getEntity().getKiller() == null) return;
         Main.getDiedPlayers().add(e.getEntity().getName());
     }

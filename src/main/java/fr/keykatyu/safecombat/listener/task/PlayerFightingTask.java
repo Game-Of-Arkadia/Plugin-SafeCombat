@@ -33,10 +33,6 @@ public class PlayerFightingTask implements Runnable {
         Duration duration = Duration.between(startingInstant, Instant.now());
         if(duration.toSeconds() >= Config.getInt("pvp.duration")) {
             cancel();
-            bossBar.removeAll();
-            bossBar.setVisible(false);
-            Main.getCombatManager().getFightingPlayers().remove(player.getName());
-            player.sendMessage(Util.prefix() + Config.getString("messages.fight.finished"));
         } else {
             int timeLeft = (int) (Config.getInt("pvp.duration") - duration.toSeconds());
             bossBar.setTitle("§4§l⚔ COMBAT §8| §c§l" + timeLeft + "§cs restantes");
@@ -46,6 +42,10 @@ public class PlayerFightingTask implements Runnable {
 
     public void cancel() {
         Bukkit.getScheduler().cancelTask(taskId);
+        bossBar.removeAll();
+        bossBar.setVisible(false);
+        Main.getCombatManager().getFightingPlayers().remove(player.getName());
+        player.sendMessage(Util.prefix() + Config.getString("messages.fight.finished"));
     }
 
     public void setStartingInstant(Instant startingInstant) {
