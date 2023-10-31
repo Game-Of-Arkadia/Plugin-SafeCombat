@@ -23,6 +23,7 @@ public final class Main extends JavaPlugin {
     private static Main INSTANCE;
     private static CombatManager combatManager;
     private static final List<String> kickedPlayers = new ArrayList<>();
+    private static final List<String> diedPlayers = new ArrayList<>();
     public static StateFlag ENTER_SAFE_ZONE_PVP;
 
     @Override
@@ -75,6 +76,10 @@ public final class Main extends JavaPlugin {
 
     public static List<String> getKickedPlayers() {
         return kickedPlayers;
+    }
+
+    public static List<String> getDiedPlayers() {
+        return diedPlayers;
     }
 
 }

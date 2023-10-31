@@ -21,8 +21,8 @@ public class PlayerProtectedTask implements Runnable {
     private final OfflinePlayer offlinePlayer;
     private final BossBar bossBar;
 
-    public PlayerProtectedTask(OfflinePlayer offlinePlayer, Instant protectionEnd) {
-        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), this, 10, 1200).getTaskId();
+    public PlayerProtectedTask(OfflinePlayer offlinePlayer, Instant protectionEnd, long taskPeriod) {
+        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), this, 10, taskPeriod).getTaskId();
         protectionStart = Instant.now();
         this.protectionEnd = protectionEnd;
         this.offlinePlayer = offlinePlayer;

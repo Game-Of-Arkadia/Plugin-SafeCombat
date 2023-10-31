@@ -14,9 +14,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -69,6 +71,24 @@ public class SafeCombatListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerDeath(PlayerDeathEvent e) {
+        if(e.getEntity().getKiller() == null) return;
+        Main.getDiedPlayers().add(e.getEntity().getName());
+    }
+
+    /**
+     * Prevent spawn kill by applying a protection
+     * @param e The event
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRespawns(PlayerRespawnEvent e) {
+        if(!e.getRespawnReason().equals(PlayerRespawnEvent.RespawnReason.DEATH)) return;
+        if(!Main.getDiedPlayers().contains(e.getPlayer().getName())) return;
+        Main.getDiedPlayers().remove(e.getPlayer().getName());
+        Main.getCombatManager().setPlayerProtected(e.getPlayer(), Instant.now().plus(Config.getInt("pvp.respawn-protection"), ChronoUnit.SECONDS), 20);
+    }
+
     /**
      * Kill player if he's fighting
      * @param e The event
@@ -90,7 +110,7 @@ public class SafeCombatListener implements Listener {
 
         // Newbie / PvP protection
         if(player.getLastPlayed() == 0) {
-            Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.newbie-protection"), ChronoUnit.HOURS));
+            Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.newbie-protection"), ChronoUnit.HOURS), 1200);
         } else if (Main.getCombatManager().isProtected(player)) {
             Main.getCombatManager().getProtectedPlayers().get(player.getUniqueId()).getBossBar().addPlayer(player);
             player.sendMessage(Util.prefix() + Config.getString("messages.protection.join"));

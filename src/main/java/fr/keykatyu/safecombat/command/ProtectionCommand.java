@@ -63,7 +63,7 @@ public class ProtectionCommand implements CommandExecutor, TabCompleter {
 
                     int time = Integer.parseInt(args[2]);
                     ChronoUnit unit = ChronoUnit.valueOf(args[3]);
-                    Main.getCombatManager().setPlayerProtected(target, Instant.now().plus(time, unit));
+                    Main.getCombatManager().setPlayerProtected(target, Instant.now().plus(time, unit), 1200);
                 } catch (IllegalArgumentException e) {
                     player.sendMessage(Util.prefix() + Config.getString("messages.args-wrong"));
                     return false;

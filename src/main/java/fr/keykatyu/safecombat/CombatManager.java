@@ -26,7 +26,7 @@ public class CombatManager {
         protectedPlayers.forEach((str, obj) -> {
             if(str.equalsIgnoreCase("uuid")) return;
             UUID uuid = UUID.fromString(str);
-            this.protectedPlayers.put(uuid, new PlayerProtectedTask(Bukkit.getOfflinePlayer(uuid), Instant.ofEpochMilli((Long) obj)));
+            this.protectedPlayers.put(uuid, new PlayerProtectedTask(Bukkit.getOfflinePlayer(uuid), Instant.ofEpochMilli((Long) obj), 1200));
         });
         fightingPlayers = new HashMap<>();
     }
@@ -57,8 +57,8 @@ public class CombatManager {
      * @param player The player
      * @param protectionEnd The Instant the protection ends
      */
-    public void setPlayerProtected(OfflinePlayer player, Instant protectionEnd) {
-        protectedPlayers.put(player.getUniqueId(), new PlayerProtectedTask(player, protectionEnd));
+    public void setPlayerProtected(OfflinePlayer player, Instant protectionEnd, long taskPeriod) {
+        protectedPlayers.put(player.getUniqueId(), new PlayerProtectedTask(player, protectionEnd, taskPeriod));
     }
 
     /**

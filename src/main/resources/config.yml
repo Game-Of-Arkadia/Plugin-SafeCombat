@@ -31,6 +31,8 @@ pvp:
   disconnection: 10
   # Time, in hours, a new player is protected and couldn't attack
   newbie-protection: 48
+  # Time, in seconds, a respawned player is protected and couldn't attack
+  respawn-protection: 30
 
 # DO NOT TOUCH
 protected-players:
