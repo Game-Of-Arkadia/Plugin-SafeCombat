@@ -8,6 +8,8 @@ import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,10 +17,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -73,7 +73,7 @@ public class SafeCombatListener implements Listener {
 
     /**
      * Remove died player from fight mode and add him to the list
-     * for respawn protection erification
+     * for respawn protection verification
      * @param e The event
      */
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -82,7 +82,7 @@ public class SafeCombatListener implements Listener {
         if(Main.getCombatManager().isFighting(player)) {
             Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
         }
-        if(e.getEntity().getKiller() == null) return;
+        if(player.getKiller() == null) return;
         Main.getDiedPlayers().add(e.getEntity().getName());
     }
 
@@ -93,9 +93,10 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerRespawns(PlayerRespawnEvent e) {
         if(!e.getRespawnReason().equals(PlayerRespawnEvent.RespawnReason.DEATH)) return;
-        if(!Main.getDiedPlayers().contains(e.getPlayer().getName())) return;
-        Main.getDiedPlayers().remove(e.getPlayer().getName());
-        Main.getCombatManager().setPlayerProtected(e.getPlayer(), Instant.now().plus(Config.getInt("pvp.respawn-protection"), ChronoUnit.SECONDS), 20);
+        Player player = e.getPlayer();
+        if(!Main.getDiedPlayers().contains(player.getName())) return;
+        Main.getDiedPlayers().remove(player.getName());
+        Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.respawn-protection"), ChronoUnit.SECONDS), 20);
     }
 
     /**
@@ -140,6 +141,20 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerKicked(PlayerKickEvent e) {
         Main.getKickedPlayers().add(e.getPlayer().getName());
+    }
+
+    /**
+     * Cooldown riptide tridents for the player if set to true
+     * in config.yml
+     * @param e The event
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRiptide(PlayerRiptideEvent e) {
+        if(!Config.getBoolean("pvp.trident.riptide-cooldown")) return;
+        ItemStack is = e.getItem();
+        if(!is.hasItemMeta()) return;
+        if(!is.getItemMeta().hasEnchant(Enchantment.RIPTIDE)) return;
+        e.getPlayer().setCooldown(Material.TRIDENT, Config.getInt("pvp.trident.cooldown-time") * 20);
     }
 
 }

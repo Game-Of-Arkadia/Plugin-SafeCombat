@@ -33,6 +33,11 @@ pvp:
   newbie-protection: 48
   # Time, in seconds, a respawned player is protected and couldn't attack
   respawn-protection: 30
+  trident:
+    # Cooldown a trident material to the player if it has a riptide enchant
+    riptide-cooldown: true
+    # Time, in seconds
+    cooldown-time: 15
 
 # DO NOT TOUCH
 protected-players:
