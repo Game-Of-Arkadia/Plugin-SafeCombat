@@ -38,6 +38,11 @@ pvp:
     riptide-cooldown: true
     # Time, in seconds
     cooldown-time: 15
+  enderpearl:
+    # Set a custom cooldown to ender pearl when thrown
+    custom-cooldown: true
+    # Time, in seconds
+    cooldown-time: 10
 
 # DO NOT TOUCH
 protected-players:

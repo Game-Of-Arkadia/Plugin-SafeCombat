@@ -7,16 +7,20 @@ import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
@@ -155,6 +159,20 @@ public class SafeCombatListener implements Listener {
         if(!is.hasItemMeta()) return;
         if(!is.getItemMeta().hasEnchant(Enchantment.RIPTIDE)) return;
         e.getPlayer().setCooldown(Material.TRIDENT, Config.getInt("pvp.trident.cooldown-time") * 20);
+    }
+
+    /**
+     * Cooldown ender pearl for the player if set to true
+     * in config.yml
+     * @param e The event
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEnderPearlThrown(ProjectileLaunchEvent e) {
+        if(!Config.getBoolean("pvp.enderpearl.custom-cooldown")) return;
+        Projectile projectile = e.getEntity();
+        if(!(projectile instanceof EnderPearl enderPearl)) return;
+        if(!(enderPearl.getShooter() instanceof Player player)) return;
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.setCooldown(Material.ENDER_PEARL, Config.getInt("pvp.enderpearl.cooldown-time") * 20), 1);
     }
 
 }
