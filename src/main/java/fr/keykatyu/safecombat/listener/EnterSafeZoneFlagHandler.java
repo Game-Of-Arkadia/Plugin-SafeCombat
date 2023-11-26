@@ -36,6 +36,7 @@ public class EnterSafeZoneFlagHandler extends FlagValueChangeHandler<StateFlag.S
         Player player = BukkitAdapter.adapt(localPlayer);
         if(Main.getCombatManager().isFighting(player) && !allowedInPvP) {
             player.sendMessage(Util.prefix() + Config.getString("messages.fight.cant-enter-zone"));
+            player.setHealth(player.getHealth() - 1.0);
             return false;
         }
         return true;
