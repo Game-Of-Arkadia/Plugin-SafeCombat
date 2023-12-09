@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 public class SafeCombatListener implements Listener {
 
@@ -173,6 +174,21 @@ public class SafeCombatListener implements Listener {
         if(!(projectile instanceof EnderPearl enderPearl)) return;
         if(!(enderPearl.getShooter() instanceof Player player)) return;
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.setCooldown(Material.ENDER_PEARL, Config.getInt("pvp.enderpearl.cooldown-time") * 20), 1);
+    }
+
+    /**
+     * Cancel command if the player is in pvp
+     * @param e The event
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerEntersCommand(PlayerCommandPreprocessEvent e) {
+        Player player = e.getPlayer();
+        if(!Main.getCombatManager().isFighting(player)) return;
+        List<String> bannedCommands = Config.getStringList("banned-commands");
+        String command = e.getMessage().replace("/", "");
+        if(!bannedCommands.contains(command)) return;
+        e.setCancelled(true);
+        player.sendMessage(Util.prefix() + Config.getString("messages.fight.command-banned"));
     }
 
 }

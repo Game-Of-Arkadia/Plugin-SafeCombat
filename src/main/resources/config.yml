@@ -8,6 +8,7 @@ messages:
     cant-enter-zone: "&cVous êtes en &lcombat &r&c! Vous ne pouvez pas entrer dans cette zone."
     enter: "&6Vous êtes en combat, n'essayez pas de fuir."
     finished: "&aVous n'êtes plus en combat."
+    command-banned: "&cCette commande est bannie en combat. Veuillez attendre de ne plus l'être."
   protection:
     finished: "&eVotre protection a pris fin. Vous pouvez désormais &cattaquer &eet &cêtre attaqué &epar d'autres joueurs."
     protected: "&aVous avez obtenu une protection. Vous ne pouvez plus attaquer ni être attaqué. Pour y renoncer, faites la commande 
@@ -43,6 +44,21 @@ pvp:
     custom-cooldown: true
     # Time, in seconds
     cooldown-time: 10
+# Banned commands if the player is in pvp
+banned-commands:
+  - "tpyes"
+  - "etpyes"
+  - "tpaccept"
+  - "etpaccept"
+  - "sethome"
+  - "esethome"
+  - "createhome"
+  - "ecreatehome"
+  - "home"
+  - "ehome"
+  - "spawn"
+  - "espawn"
+  - "f home"
 
 # DO NOT TOUCH
 protected-players:
