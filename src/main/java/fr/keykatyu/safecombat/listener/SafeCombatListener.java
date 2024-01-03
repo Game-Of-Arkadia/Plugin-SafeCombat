@@ -128,13 +128,13 @@ public class SafeCombatListener implements Listener {
             Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.newbie-protection"), ChronoUnit.HOURS), 1200);
         } else if (Main.getCombatManager().isProtected(player)) {
             Main.getCombatManager().getProtectedPlayers().get(player.getUniqueId()).getBossBar().addPlayer(player);
-            player.sendMessage(Util.prefix() + Config.getString("messages.protection.join"));
+            player.sendMessage(Util.prefix() + Main.getLang().get("protection.join"));
         }
 
         // Combat disconnection
         if(!Main.getCombatManager().getPlayersToKill().contains(player.getName())) return;
         Main.getCombatManager().getPlayersToKill().remove(player.getName());
-        e.setJoinMessage("§6§l" + player.getName() + " §es'est reconnecté après sa déconnexion en combat.");
+        e.setJoinMessage("§6§l" + player.getName() + " §e" + Main.getLang().get("fight.player-reconnected"));
         player.getInventory().clear();
         player.setHealth(0);
     }
@@ -188,7 +188,7 @@ public class SafeCombatListener implements Listener {
         String command = e.getMessage().replace("/", "");
         if(!bannedCommands.contains(command)) return;
         e.setCancelled(true);
-        player.sendMessage(Util.prefix() + Config.getString("messages.fight.command-banned"));
+        player.sendMessage(Util.prefix() + Main.getLang().get("fight.command-banned"));
     }
 
 }

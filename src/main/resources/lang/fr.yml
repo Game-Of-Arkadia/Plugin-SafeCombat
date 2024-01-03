@@ -1,0 +1,35 @@
+prefix: "&b&l[&9SafeCombat&b&l]"
+must-be-player: "&cVous devez être un joueur pour exécuter cette commande."
+args-wrong: "&cUn ou plusieurs arguments sont incorrects."
+player-offline: "&cLe joueur que vous avez renseigné n'est pas en ligne."
+not-enough-args: "&cLe nombre d'argument n'est pas correct."
+fight:
+  cant-enter-zone: "&cVous êtes en &lcombat &r&c! Vous ne pouvez pas entrer dans cette zone."
+  enter: "&6Vous êtes en combat, n'essayez pas de fuir."
+  finished: "&aVous n'êtes plus en combat."
+  command-banned: "&cCette commande est bannie en combat. Veuillez attendre de ne plus l'être."
+  boss-bar: "§4§l⚔ COMBAT §8| §c§l%duration%§cs restantes"
+  player-disconnected: "s'est déconnecté en combat."
+  player-reconnected: "s'est reconnecté après sa déconnexion en combat."
+protection:
+  duration-format: "HH'h'mm'm'ss's'"
+  boss-bar: "§c§l⚔ §b§lProtection §7| §bReste §6%duration% §c§l⚔"
+  added: "&aUn administrateur vient de vous appliquer une protection."
+  added-admin: "&aLa protection a bien été appliquée avec succès au joueur !"
+  finished: "&eVotre protection a pris fin. Vous pouvez désormais &cattaquer &eet &cêtre attaqué &epar d'autres joueurs."
+  protected: "&aVous avez obtenu une protection. Vous ne pouvez plus attaquer ni être attaqué. Pour y renoncer, faites la commande 
+      &e/protection disable&a."
+  join: "&6Rappel : &eVous bénéficiez d'une protection. Vous ne pouvez &cni attaquer, ni être attaqué&e. Pour y renoncer, faites la commande 
+      &c/protection disable&e."
+  not-protected: "&cVous n'êtes pas protégé."
+  try-again: "&cÉchec de la désactivation de votre protection, respectez bien les consignes."
+  cancelled: "&aOpération annulée."
+  removed: "&e&lVotre protection a été supprimée avec succès."
+  removed-admin: "&e&lVotre protection a été supprimée par un administrateur."
+  target-removed: "&aLa protection du joueur a été supprimée avec succès."
+  cancellation-cancel-code: "annuler"
+  cancellation-code: "Je ne veux plus bénéficier de ma protection"
+  cancellation-started: "&eLa procédure de désactivation de la protection a commencé. Pour l'annuler, écrivez \"&c%cancel-code%&e\" dans le tchat. 
+      &ePour désactiver votre protection, écrivez à l'identique \"&c%code%&e\". &6Cet acte est irréversible. 
+      La perte de votre protection vous permet d'attaquer et d'être attaqué."
+  already: "&cCe joueur est déjà sous l'effet d'une protection."

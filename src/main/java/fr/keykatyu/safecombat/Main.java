@@ -10,6 +10,7 @@ import fr.keykatyu.safecombat.command.ProtectionCommand;
 import fr.keykatyu.safecombat.listener.EnterSafeZoneFlagHandler;
 import fr.keykatyu.safecombat.listener.SafeCombatListener;
 import fr.keykatyu.safecombat.util.Config;
+import fr.keykatyu.safecombat.util.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,21 +23,22 @@ public final class Main extends JavaPlugin {
 
     private static Main INSTANCE;
     private static CombatManager combatManager;
+    private static Lang lang;
     private static final List<String> kickedPlayers = new ArrayList<>();
     private static final List<String> diedPlayers = new ArrayList<>();
-    public static StateFlag ENTER_SAFE_ZONE_PVP;
 
     @Override
     public void onLoad() {
+        // Register custom WG flag
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
         try {
             StateFlag enterSafeZonePvPFlag = new StateFlag("enter-safe-zone-pvp", true);
             registry.register(enterSafeZonePvPFlag);
-            ENTER_SAFE_ZONE_PVP = enterSafeZonePvPFlag;
+            EnterSafeZoneFlagHandler.ENTER_SAFE_ZONE_PVP = enterSafeZonePvPFlag;
         } catch (FlagConflictException e) {
             Flag<?> existing = registry.get("enter-safe-zone-pvp");
             if (existing instanceof StateFlag) {
-                ENTER_SAFE_ZONE_PVP = (StateFlag) existing;
+                EnterSafeZoneFlagHandler.ENTER_SAFE_ZONE_PVP = (StateFlag) existing;
             }
         }
     }
@@ -49,6 +51,11 @@ public final class Main extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveConfig();
 
+        // Setup lang files
+        Lang.setupFiles();
+        lang = new Lang(getConfig().getString("language"));
+
+        // Setup command, listeners and managers
         getCommand("protection").setExecutor(new ProtectionCommand());
         combatManager = new CombatManager(Config.getStringList("playerstokill"), Config.getMap("protected-players"));
         Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
@@ -72,6 +79,10 @@ public final class Main extends JavaPlugin {
 
     public static CombatManager getCombatManager() {
         return combatManager;
+    }
+
+    public static Lang getLang() {
+        return lang;
     }
 
     public static List<String> getKickedPlayers() {

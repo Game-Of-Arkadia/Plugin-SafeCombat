@@ -9,7 +9,7 @@ public class Util {
      * @return The prefix
      */
     public static String prefix() {
-        return Config.getString("messages.prefix") + " ";
+        return Main.getLang().get("prefix") + " ";
     }
 
     /**

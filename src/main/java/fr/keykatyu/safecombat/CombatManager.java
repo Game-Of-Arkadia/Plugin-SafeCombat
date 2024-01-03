@@ -2,7 +2,6 @@ package fr.keykatyu.safecombat;
 
 import fr.keykatyu.safecombat.listener.task.PlayerFightingTask;
 import fr.keykatyu.safecombat.listener.task.PlayerProtectedTask;
-import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -49,7 +48,7 @@ public class CombatManager {
      */
     public void setPlayerFighting(Player player) {
         fightingPlayers.put(player.getName(), new PlayerFightingTask(player));
-        player.sendMessage(Util.prefix() + Config.getString("messages.fight.enter"));
+        player.sendMessage(Util.prefix() + Main.getLang().get("fight.enter"));
     }
 
     /**

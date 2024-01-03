@@ -1,6 +1,10 @@
-# SafeCombat - MC 1.20.1
+# SafeCombat - MC 1.20.4
 
-Avoiding anti-gambling in PvP
+> Avoiding anti-gambling in PvP
+
+## Features
+
+- TODO
 
 ## Commands
 
@@ -19,5 +23,5 @@ Avoiding anti-gambling in PvP
 
 # Dependencies
 
-- **WorldEdit** for **WorldGuard**
+- **WorldGuard**
 - **SaberFactions**

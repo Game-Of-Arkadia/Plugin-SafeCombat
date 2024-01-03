@@ -1,7 +1,6 @@
 package fr.keykatyu.safecombat.listener.task;
 
 import fr.keykatyu.safecombat.Main;
-import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
@@ -38,9 +37,9 @@ public class PlayerProtectedTask implements Runnable {
         if(duration.isNegative() || duration.isZero()) {
             cancel();
             Main.getCombatManager().getProtectedPlayers().remove(offlinePlayer.getUniqueId());
-            if(offlinePlayer.isOnline()) offlinePlayer.getPlayer().sendMessage(Util.prefix() + Config.getString("messages.protection.finished"));
+            if(offlinePlayer.isOnline()) offlinePlayer.getPlayer().sendMessage(Util.prefix() + Main.getLang().get("protection.finished"));
         } else {
-            bossBar.setTitle("§c§l⚔ §b§lProtection §7| §bReste §6" + DurationFormatUtils.formatDuration(duration.toMillis(), "HH'h'mm'm'ss's'", false) + " §c§l⚔");
+            bossBar.setTitle(Main.getLang().get("protection.boss-bar").replaceAll("%duration%", DurationFormatUtils.formatDuration(duration.toMillis(), Main.getLang().get("protection.duration-format"), false)));
             Duration totalDuration = Duration.between(protectionStart, protectionEnd);
             bossBar.setProgress((double) duration.toMillis() / totalDuration.toMillis());
         }

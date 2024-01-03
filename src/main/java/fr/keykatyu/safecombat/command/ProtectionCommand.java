@@ -2,7 +2,6 @@ package fr.keykatyu.safecombat.command;
 
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.ConfirmDisableProtection;
-import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -26,64 +25,68 @@ public class ProtectionCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if(!(sender instanceof Player player)) {
-            sender.sendMessage(Util.prefix() + Config.getString("messages.must-be-player"));
+            sender.sendMessage(Util.prefix() + Main.getLang().get("must-be-player"));
             return false;
         }
 
         if(args.length < 1 || args.length > 4) {
-            player.sendMessage(Util.prefix() + Config.getString("messages.not-enough-args"));
+            player.sendMessage(Util.prefix() + Main.getLang().get("not-enough-args"));
             return false;
         }
 
         switch (args[0]) {
             case "disable" -> {
                 if(!Main.getCombatManager().isProtected(player)) {
-                    player.sendMessage(Util.prefix() + Config.getString("messages.protection.not-protected"));
+                    player.sendMessage(Util.prefix() + Main.getLang().get("protection.not-protected"));
                     return false;
                 }
                 Bukkit.getPluginManager().registerEvents(new ConfirmDisableProtection(player), Main.getInstance());
-                player.sendMessage(Util.prefix() + Config.getString("messages.protection.cancellation-started"));
+                player.sendMessage(Util.prefix() + Main.getLang().get("protection.cancellation-started")
+                        .replaceAll("%cancel-code%", Main.getLang().get("protection.cancellation-cancel-code"))
+                        .replaceAll("%code%", Main.getLang().get("protection.cancellation-code")));
             }
             case "add" -> {
                 if(args.length < 4) {
-                    player.sendMessage(Util.prefix() + Config.getString("messages.not-enough-args"));
+                    player.sendMessage(Util.prefix() + Main.getLang().get("not-enough-args"));
                     return false;
                 }
                 if(!player.hasPermission("safecombat.protection")) return false;
                 try {
                     Player target = Bukkit.getPlayer(args[1]);
                     if(target == null) {
-                        player.sendMessage(Util.prefix() + Config.getString("messages.player-offline"));
+                        player.sendMessage(Util.prefix() + Main.getLang().get("player-offline"));
                         return false;
                     }
                     if(Main.getCombatManager().isProtected(target)) {
-                        player.sendMessage(Util.prefix() + Config.getString("messages.protection.already"));
+                        player.sendMessage(Util.prefix() + Main.getLang().get("protection.already"));
                         return false;
                     }
 
                     int time = Integer.parseInt(args[2]);
                     ChronoUnit unit = ChronoUnit.valueOf(args[3]);
                     Main.getCombatManager().setPlayerProtected(target, Instant.now().plus(time, unit), 1200);
+                    player.sendMessage(Util.prefix() + Main.getLang().get("protection.added-admin"));
+                    target.sendMessage(Util.prefix() + Main.getLang().get("protection.added"));
                 } catch (IllegalArgumentException e) {
-                    player.sendMessage(Util.prefix() + Config.getString("messages.args-wrong"));
+                    player.sendMessage(Util.prefix() + Main.getLang().get("args-wrong"));
                     return false;
                 }
             }
             case "remove" -> {
                 if(args.length != 2) {
-                    player.sendMessage(Util.prefix() + Config.getString("messages.not-enough-args"));
+                    player.sendMessage(Util.prefix() + Main.getLang().get("not-enough-args"));
                     return false;
                 }
                 if(!player.hasPermission("safecombat.protection")) return false;
                 Player target = Bukkit.getPlayer(args[1]);
                 if(target == null) {
-                    player.sendMessage(Util.prefix() + Config.getString("messages.player-offline"));
+                    player.sendMessage(Util.prefix() + Main.getLang().get("player-offline"));
                     return false;
                 }
                 Main.getCombatManager().getProtectedPlayers().get(target.getUniqueId()).cancel();
                 Main.getCombatManager().getProtectedPlayers().remove(target.getUniqueId());
-                target.sendMessage(Util.prefix() + Config.getString("messages.protection.removed-admin"));
-                player.sendMessage(Util.prefix() + Config.getString("messages.protection.target-removed"));
+                target.sendMessage(Util.prefix() + Main.getLang().get("protection.removed-admin"));
+                player.sendMessage(Util.prefix() + Main.getLang().get("protection.target-removed"));
             }
         }
 

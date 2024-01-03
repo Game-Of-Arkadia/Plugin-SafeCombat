@@ -23,7 +23,7 @@ public class PlayerFightingTask implements Runnable {
         taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), this, 0, 20).getTaskId();
         startingInstant = Instant.now();
         this.player = player;
-        bossBar = Bukkit.createBossBar("§4§l⚔ COMBAT §8| §c§l" + Config.getInt("pvp.duration") + "§cs restantes", BarColor.RED, BarStyle.SEGMENTED_10);
+        bossBar = Bukkit.createBossBar(Main.getLang().get("fight.boss-bar").replaceAll("%duration%", String.valueOf(Config.getInt("pvp.duration"))), BarColor.RED, BarStyle.SEGMENTED_10);
         bossBar.addPlayer(player);
         bossBar.setVisible(true);
     }
@@ -35,7 +35,7 @@ public class PlayerFightingTask implements Runnable {
             cancel();
         } else {
             int timeLeft = (int) (Config.getInt("pvp.duration") - duration.toSeconds());
-            bossBar.setTitle("§4§l⚔ COMBAT §8| §c§l" + timeLeft + "§cs restantes");
+            bossBar.setTitle(Main.getLang().get("fight.boss-bar").replaceAll("%duration%", String.valueOf(timeLeft)));
             bossBar.setProgress((double) timeLeft / Config.getInt("pvp.duration"));
         }
     }
@@ -45,7 +45,7 @@ public class PlayerFightingTask implements Runnable {
         bossBar.removeAll();
         bossBar.setVisible(false);
         Main.getCombatManager().getFightingPlayers().remove(player.getName());
-        player.sendMessage(Util.prefix() + Config.getString("messages.fight.finished"));
+        player.sendMessage(Util.prefix() + Main.getLang().get("fight.finished"));
     }
 
     public void setStartingInstant(Instant startingInstant) {

@@ -37,7 +37,7 @@ public class PlayerDisconnectedTask implements Runnable, Listener {
 
     @Override
     public void run() {
-        player.getServer().broadcastMessage("§6§l" + player.getName() + " §cs'est déconnecté en combat.");
+        player.getServer().broadcastMessage("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected"));
         Main.getCombatManager().getPlayersToKill().add(player.getName());
         if( Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
             Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();

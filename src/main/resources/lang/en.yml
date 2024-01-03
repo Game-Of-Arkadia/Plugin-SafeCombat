@@ -1,0 +1,35 @@
+prefix: "&b&l[&9SafeCombat&b&l]"
+must-be-player: "&cYou must be a player to execute this command."
+args-wrong: "&cOne or several arguments are incorrect."
+player-offline: "&cThe specified player isn't online."
+not-enough-args: "&cThe number of command arguments isn't correct."
+fight:
+  cant-enter-zone: "&cYou are in &lcombat &r&c! You cannot enter this zone."
+  enter: "&6You're in combat, don't try to escape."
+  finished: "&aYou're no longer in combat."
+  command-banned: "&cThis command is banned in combat. Please wait until you are no longer in combat."
+  boss-bar: "§4§l⚔ COMBAT §8| §c§l%duration%§cs left"
+  player-disconnected: "disconnected in combat."
+  player-reconnected: "reconnected after disconnecting in combat."
+protection:
+  duration-format: "HH'h'mm'm'ss's'"
+  boss-bar: "§c§l⚔ §b§lProtection §7| §6%duration% §bleft §c§l⚔"
+  added: "&aAn administrator has just applied protection to you."
+  added-admin: "&aProtection has been applied to the target player!"
+  finished: "&eYour protection has ended. You can now &cattack &eand &cbe attacked &eby other players."
+  protected: "&aYou have been given protection. You can no longer attack or be attacked. To disable it, use the command 
+      &e/protection disable&a."
+  join: "&6Reminder: &eyou are protected. You can &cneither attack nor be attacked&e. To disable it, use the command 
+      &c/protection disable&e."
+  not-protected: "&cYou are not protected."
+  try-again: "&cFailure to deactivate your protection, follow the instructions carefully."
+  cancelled: "&aOperation cancelled."
+  removed: "&e&lYour protection has been successfully removed."
+  removed-admin: "&e&lYour protection has been removed by an administrator."
+  target-removed: "&aPlayer protection has been successfully removed."
+  cancellation-cancel-code: "cancel"
+  cancellation-code: "I no longer wish to benefit from my protection"
+  cancellation-started: "&eThe protection deactivation procedure has begun. To cancel, write \"&c%cancel-code%&e\" in the chat. 
+      &eTo deactivate your protection, write as follows \"&c%code%&e\". &6This act is irreversible.
+      Losing your protection means you can attack and be attacked."
+  already: "&cThis player is already under protection."
