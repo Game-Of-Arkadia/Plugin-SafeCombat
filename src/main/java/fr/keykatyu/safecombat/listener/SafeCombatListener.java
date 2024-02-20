@@ -21,6 +21,7 @@ import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.struct.Relation;
 import fr.keykatyu.safecombat.Main;
+import fr.keykatyu.safecombat.listener.event.PlayerStartsFightingEvent;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
@@ -79,6 +80,7 @@ public class SafeCombatListener implements Listener {
         if(!damager.getGameMode().equals(GameMode.CREATIVE)) {
             if(!Main.getCombatManager().isFighting(damager)) {
                 Main.getCombatManager().setPlayerFighting(damager);
+                Bukkit.getPluginManager().callEvent(new PlayerStartsFightingEvent(damager, PlayerStartsFightingEvent.Type.ATTACKER));
             } else {
                 Main.getCombatManager().updateInstant(damager);
             }
@@ -87,6 +89,7 @@ public class SafeCombatListener implements Listener {
         if(!player.getGameMode().equals(GameMode.CREATIVE)) {
             if(!Main.getCombatManager().isFighting(player)) {
                 Main.getCombatManager().setPlayerFighting(player);
+                Bukkit.getPluginManager().callEvent(new PlayerStartsFightingEvent(player, PlayerStartsFightingEvent.Type.ATTACKED));
             } else {
                 Main.getCombatManager().updateInstant(player);
             }

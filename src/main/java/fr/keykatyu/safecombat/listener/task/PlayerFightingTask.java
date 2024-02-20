@@ -18,6 +18,7 @@
 package fr.keykatyu.safecombat.listener.task;
 
 import fr.keykatyu.safecombat.Main;
+import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.Bukkit;
@@ -62,6 +63,7 @@ public class PlayerFightingTask implements Runnable {
         bossBar.removeAll();
         bossBar.setVisible(false);
         Main.getCombatManager().getFightingPlayers().remove(player.getName());
+        Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player));
         player.sendMessage(Util.prefix() + Main.getLang().get("fight.finished"));
     }
 

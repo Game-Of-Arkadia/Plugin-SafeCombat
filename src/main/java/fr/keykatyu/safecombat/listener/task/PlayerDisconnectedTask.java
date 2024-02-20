@@ -18,6 +18,7 @@
 package fr.keykatyu.safecombat.listener.task;
 
 import fr.keykatyu.safecombat.Main;
+import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
 import fr.keykatyu.safecombat.util.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -56,9 +57,10 @@ public class PlayerDisconnectedTask implements Runnable, Listener {
     public void run() {
         player.getServer().broadcastMessage("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected"));
         Main.getCombatManager().getPlayersToKill().add(player.getName());
-        if( Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
+        if(Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
             Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
             Main.getCombatManager().getFightingPlayers().remove(player.getName());
+            Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player));
         }
 
         Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
