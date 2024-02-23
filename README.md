@@ -15,7 +15,9 @@ Avoiding **anti-gambling** in **PvP**
 
 > 🔙 **Anti-safe zone back**  
 > Compatibility with **WorldGuard** thanks to a custom flag to prevent players in combat from entering into areas.  
-> A client-only force field is generated to prevent the player from advancing. Nor can he use ender pearls to teleport.  
+> - A client-only force field is generated to prevent the player from advancing. 
+> - Nor can he use ender pearls to teleport.  
+> 
 > See [**demonstration video**](https://www.youtube.com/watch?v=nF5s4Tff7Yk).
 
 > 🛡️ **Protection**  
