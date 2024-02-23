@@ -32,6 +32,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -65,10 +66,12 @@ public final class ForceFieldListener implements Listener {
                 blocksRemoved = new HashSet<>();
             }
 
+            Collection<BlockState> removedBlockStates = new ArrayList<>();
             for (Location location : blocksRemoved) {
                 Block block = location.getBlock();
-                player.sendBlockChange(location, block.getBlockData());
+                removedBlockStates.add(block.getState());
             }
+            player.sendBlockChanges(removedBlockStates);
 
             blocksChangedMap.remove(player.getUniqueId());
         });
@@ -97,17 +100,21 @@ public final class ForceFieldListener implements Listener {
                 blocksRemoved = new HashSet<>();
             }
 
+            Collection<BlockState> blockStates = new ArrayList<>();
             for (Location location : blocksToChange) {
                 BlockState blockState = location.getBlock().getState().copy();
                 blockState.setType(Material.RED_STAINED_GLASS);
-                player.sendBlockChange(location, blockState.getBlockData());
+                blockStates.add(blockState);
                 blocksRemoved.remove(location);
             }
+            player.sendBlockChanges(blockStates);
 
+            Collection<BlockState> removedBlockStates = new ArrayList<>();
             for (Location location : blocksRemoved) {
                 Block block = location.getBlock();
-                player.sendBlockChange(location, block.getBlockData());
+                removedBlockStates.add(block.getState());
             }
+            player.sendBlockChanges(removedBlockStates);
 
             blocksChangedMap.put(player.getUniqueId(), blocksToChange);
         });
@@ -155,7 +162,7 @@ public final class ForceFieldListener implements Listener {
                 for (int y = -height; y < height; y++) {
                     Location loc = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
                     loc.setY(loc.getY() + y);
-                    if (!loc.getBlock().getType().equals(Material.AIR)) continue;
+                    if (!loc.getBlock().getType().equals(Material.AIR) && !(loc.getBlock().getBlockData() instanceof Waterlogged)) continue;
                     blocksToChange.add(new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
                 }
             }
