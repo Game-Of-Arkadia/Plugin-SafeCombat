@@ -37,6 +37,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
@@ -109,6 +111,22 @@ public final class ForceFieldListener implements Listener {
 
             blocksChangedMap.put(player.getUniqueId(), blocksToChange);
         });
+    }
+
+    /**
+     * Cancel ender pearl throw in safe zone while
+     * player is fighting
+     * @param e The teleport event
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEnderPearlTeleport(PlayerTeleportEvent e) {
+        if(!e.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)) return;
+        Player player = e.getPlayer();
+        if(!Main.getCombatManager().isFighting(player)) return;
+        Location to = e.getTo();
+        if(!isSafeZoneAt(player, to)) return;
+        player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
+        e.setCancelled(true);
     }
 
     /**
