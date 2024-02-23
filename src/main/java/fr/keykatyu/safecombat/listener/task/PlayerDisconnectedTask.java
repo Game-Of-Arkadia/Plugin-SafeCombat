@@ -60,7 +60,7 @@ public class PlayerDisconnectedTask implements Runnable, Listener {
         if(Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
             Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
             Main.getCombatManager().getFightingPlayers().remove(player.getName());
-            Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player));
+            Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
         }
 
         Bukkit.getScheduler().runTask(Main.getInstance(), () -> {

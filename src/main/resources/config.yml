@@ -21,6 +21,10 @@ pvp:
     custom-cooldown: true
     # Time, in seconds
     cooldown-time: 10
+  # Radius to enable forcefield (cancel when player goes back in safezones)
+  forcefield:
+    radius: 8
+    height: 8
 # Banned commands if the player is in pvp
 banned-commands:
   - "tpyes"

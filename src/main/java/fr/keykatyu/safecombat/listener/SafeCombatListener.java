@@ -44,9 +44,14 @@ import org.bukkit.inventory.ItemStack;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class SafeCombatListener implements Listener {
+
+    public final Set<UUID> processingPlayers = new HashSet<>();
 
     /**
      * Make player and killer in PvP

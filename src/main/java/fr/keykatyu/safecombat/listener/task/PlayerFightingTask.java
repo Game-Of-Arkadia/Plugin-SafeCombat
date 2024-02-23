@@ -63,7 +63,7 @@ public class PlayerFightingTask implements Runnable {
         bossBar.removeAll();
         bossBar.setVisible(false);
         Main.getCombatManager().getFightingPlayers().remove(player.getName());
-        Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player));
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
         player.sendMessage(Util.prefix() + Main.getLang().get("fight.finished"));
     }
 

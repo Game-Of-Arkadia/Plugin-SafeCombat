@@ -22,9 +22,8 @@ import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
-import com.sk89q.worldguard.session.SessionManager;
 import fr.keykatyu.safecombat.command.ProtectionCommand;
-import fr.keykatyu.safecombat.listener.EnterSafeZoneFlagHandler;
+import fr.keykatyu.safecombat.listener.ForceFieldListener;
 import fr.keykatyu.safecombat.listener.SafeCombatListener;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Lang;
@@ -43,6 +42,7 @@ public final class Main extends JavaPlugin {
     private static Lang lang;
     private static final List<String> kickedPlayers = new ArrayList<>();
     private static final List<String> diedPlayers = new ArrayList<>();
+    public static StateFlag ENTER_SAFE_ZONE_PVP;
 
     @Override
     public void onLoad() {
@@ -51,11 +51,11 @@ public final class Main extends JavaPlugin {
         try {
             StateFlag enterSafeZonePvPFlag = new StateFlag("enter-safe-zone-pvp", true);
             registry.register(enterSafeZonePvPFlag);
-            EnterSafeZoneFlagHandler.ENTER_SAFE_ZONE_PVP = enterSafeZonePvPFlag;
+            ENTER_SAFE_ZONE_PVP = enterSafeZonePvPFlag;
         } catch (FlagConflictException e) {
             Flag<?> existing = registry.get("enter-safe-zone-pvp");
             if (existing instanceof StateFlag) {
-                EnterSafeZoneFlagHandler.ENTER_SAFE_ZONE_PVP = (StateFlag) existing;
+                ENTER_SAFE_ZONE_PVP = (StateFlag) existing;
             }
         }
     }
@@ -76,10 +76,7 @@ public final class Main extends JavaPlugin {
         getCommand("protection").setExecutor(new ProtectionCommand());
         combatManager = new CombatManager(Config.getStringList("playerstokill"), Config.getMap("protected-players"));
         Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
-
-        // Register WorldGuard flag handler
-        SessionManager sessionManager = WorldGuard.getInstance().getPlatform().getSessionManager();
-        sessionManager.registerHandler(EnterSafeZoneFlagHandler.FACTORY, null);
+        Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
     }
 
     @Override
