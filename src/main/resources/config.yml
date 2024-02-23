@@ -6,10 +6,12 @@ pvp:
   # Time, in seconds, to stop be considered in PvP
   duration: 30
   # Time, in seconds, to be considered to have leaved the fight
+  # -1 to disable
   disconnection: 10
   # Time, in hours, a new player is protected and couldn't attack
   newbie-protection: 48
   # Time, in seconds, a respawned player is protected and couldn't attack
+  # -1 to disable
   respawn-protection: 30
   trident:
     # Cooldown a trident material to the player if it has a riptide enchant

@@ -22,6 +22,7 @@ import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.struct.Relation;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.event.PlayerStartsFightingEvent;
+import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Util;
@@ -126,7 +127,10 @@ public class SafeCombatListener implements Listener {
         Player player = e.getPlayer();
         if(!Main.getDiedPlayers().contains(player.getName())) return;
         Main.getDiedPlayers().remove(player.getName());
-        Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.respawn-protection"), ChronoUnit.SECONDS), 20);
+        int respawnProtection = Config.getInt("pvp.respawn-protection");
+        if(respawnProtection != -1) {
+           Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(respawnProtection, ChronoUnit.SECONDS), 20);
+        }
     }
 
     /**
@@ -135,9 +139,27 @@ public class SafeCombatListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerFightingQuit(PlayerQuitEvent e) {
-        if(!Main.getCombatManager().isFighting(e.getPlayer())) return;
-        if(Main.getKickedPlayers().contains(e.getPlayer().getName())) return;
-        Main.getInstance().getServer().getPluginManager().registerEvents(new PlayerDisconnectedTask(e.getPlayer()), Main.getInstance());
+        Player player = e.getPlayer();
+        if(!Main.getCombatManager().isFighting(player)) return;
+        if(Main.getKickedPlayers().contains(player.getName())) return;
+        if(Config.getInt("pvp.disconnection") == -1) {
+            player.getServer().broadcastMessage("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected"));
+            Main.getCombatManager().getPlayersToKill().add(player.getName());
+            if(Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
+                Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
+                Main.getCombatManager().getFightingPlayers().remove(player.getName());
+                Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
+            }
+
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                for(ItemStack itemStack : player.getInventory().getContents()) {
+                    if(itemStack == null) continue;
+                    player.getWorld().dropItem(player.getLocation(), itemStack);
+                }
+            });
+        } else {
+            Main.getInstance().getServer().getPluginManager().registerEvents(new PlayerDisconnectedTask(e.getPlayer()), Main.getInstance());
+        }
     }
 
     /**

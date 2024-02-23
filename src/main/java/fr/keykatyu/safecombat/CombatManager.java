@@ -72,6 +72,7 @@ public class CombatManager {
      * Make the player protected - it can't pvp and be attacked
      * @param player The player
      * @param protectionEnd The Instant the protection ends
+     * @param taskPeriod Task period
      */
     public void setPlayerProtected(OfflinePlayer player, Instant protectionEnd, long taskPeriod) {
         protectedPlayers.put(player.getUniqueId(), new PlayerProtectedTask(player, protectionEnd, taskPeriod));
