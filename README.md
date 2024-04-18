@@ -1,4 +1,4 @@
-# SafeCombat - MC 1.20.x +
+<img src="banner.png" alt="Safe Combat logo">
 
 Avoiding **anti-gambling** in **PvP**  
 
