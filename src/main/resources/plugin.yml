@@ -5,7 +5,6 @@ api-version: '1.20'
 description: '${project.description}'
 softdepend:
   - WorldGuard
-  - Factions
 commands:
   protection:
     description: Manage player PvP protection.

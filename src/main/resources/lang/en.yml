@@ -5,7 +5,6 @@ player-offline: "&cThe specified player isn't online."
 not-enough-args: "&cThe number of command arguments isn't correct."
 dependency:
   worldguard: "&eWorldGuard dependency found and linked !"
-  factions: "&eFactions dependency found !"
 fight:
   cant-enter-zone: "&cYou are in &lcombat &r&c! You cannot enter this zone."
   enter: "&6You're in combat, don't try to escape."

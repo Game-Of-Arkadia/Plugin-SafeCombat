@@ -5,7 +5,6 @@ player-offline: "&cLe joueur que vous avez renseigné n'est pas en ligne."
 not-enough-args: "&cLe nombre d'argument n'est pas correct."
 dependency:
   worldguard: "&eDépendance WorldGuard trouvée et reliée au plugin !"
-  factions: "&eDépendance Factions trouvée !"
 fight:
   cant-enter-zone: "&cVous êtes en &lcombat &r&c! Vous ne pouvez pas entrer dans cette zone."
   enter: "&6Vous êtes en combat, n'essayez pas de fuir."

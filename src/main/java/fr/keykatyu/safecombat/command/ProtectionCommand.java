@@ -19,6 +19,7 @@ package fr.keykatyu.safecombat.command;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.listener.ConfirmDisableProtection;
 import fr.keykatyu.safecombat.util.Util;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,9 +27,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;

@@ -38,7 +38,6 @@ public final class Main extends JavaPlugin {
     private static CombatManager combatManager;
     private static Lang lang;
     private static boolean isWGEnabled;
-    private static boolean isFactionsEnabled;
 
     private static final List<String> kickedPlayers = new ArrayList<>();
     private static final List<String> diedPlayers = new ArrayList<>();
@@ -66,11 +65,6 @@ public final class Main extends JavaPlugin {
         if(isWGEnabled) {
             Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
             getServer().getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
-        }
-
-        if (getServer().getPluginManager().getPlugin("Factions") != null) {
-            isFactionsEnabled = true;
-            getServer().getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.factions"));
         }
 
         // Setup command, listeners and managers
@@ -102,11 +96,6 @@ public final class Main extends JavaPlugin {
     public static boolean isWGEnabled() {
         return isWGEnabled;
     }
-
-    public static boolean isFactionsEnabled() {
-        return isFactionsEnabled;
-    }
-
 
     public static List<String> getKickedPlayers() {
         return kickedPlayers;

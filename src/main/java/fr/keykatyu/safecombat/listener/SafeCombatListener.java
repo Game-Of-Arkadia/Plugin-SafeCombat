@@ -18,7 +18,6 @@
 package fr.keykatyu.safecombat.listener;
 
 import fr.keykatyu.safecombat.Main;
-import fr.keykatyu.safecombat.bridge.FactionsBridge;
 import fr.keykatyu.safecombat.listener.event.PlayerStartsFightingEvent;
 import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
@@ -56,7 +55,7 @@ public class SafeCombatListener implements Listener {
      * Make player and killer in PvP
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
@@ -74,11 +73,6 @@ public class SafeCombatListener implements Listener {
         if(Main.getCombatManager().isProtected(damager) || Main.getCombatManager().isProtected(player)) {
             e.setCancelled(true);
             return;
-        }
-
-        if(Main.isFactionsEnabled()) {
-            // Factions dependency : check if players are allies
-            if(FactionsBridge.areAllies(damager, player)) return;
         }
 
         if(!damager.getGameMode().equals(GameMode.CREATIVE)) {

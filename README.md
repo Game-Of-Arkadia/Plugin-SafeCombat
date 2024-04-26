@@ -23,7 +23,7 @@ Avoiding **anti-gambling** in **PvP**
 > 🛡️ **Protection**  
 > A protected player **cannot attack or be attacked**.
 > - Automatic protection for **new players on your server.**
-> - Personalised protection for a player _(administrator command)_.
+> - Custom protection for a player _(administrator command)_.
 > - Time remaining visible in an animated boss bar.
 > - A player **can refuse protection** with a command (irreversible).
 
@@ -62,7 +62,6 @@ Events aren't cancellable yet.
 > - Custom getter :
 >   - **getPlayer()** Get the player concerned.
 
-# Soft dependencies
+# Soft dependencies (= optional)
 
 - **WorldGuard**
-- A **Factions** plugin _(SaberFactions recommended)_
