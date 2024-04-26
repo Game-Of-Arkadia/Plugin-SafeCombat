@@ -17,10 +17,8 @@
 
 package fr.keykatyu.safecombat.listener;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-import com.massivecraft.factions.struct.Relation;
 import fr.keykatyu.safecombat.Main;
+import fr.keykatyu.safecombat.bridge.FactionsBridge;
 import fr.keykatyu.safecombat.listener.event.PlayerStartsFightingEvent;
 import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
 import fr.keykatyu.safecombat.listener.task.PlayerDisconnectedTask;
@@ -78,10 +76,10 @@ public class SafeCombatListener implements Listener {
             return;
         }
 
-        // Check if players are ally
-        FPlayer fKiller = FPlayers.getInstance().getByPlayer(damager);
-        FPlayer fPlayer = FPlayers.getInstance().getByPlayer(player);
-        if(fKiller.getRelationTo(fPlayer).isAtLeast(Relation.ALLY)) return;
+        if(Main.isFactionsEnabled()) {
+            // Factions dependency : check if players are allies
+            if(FactionsBridge.areAllies(damager, player)) return;
+        }
 
         if(!damager.getGameMode().equals(GameMode.CREATIVE)) {
             if(!Main.getCombatManager().isFighting(damager)) {

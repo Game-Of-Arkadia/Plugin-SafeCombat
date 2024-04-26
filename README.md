@@ -42,7 +42,27 @@ Avoiding **anti-gambling** in **PvP**
 - **safecombat.protection**  
     Add and remove player's protection
 
-# Dependencies
+# API
+
+_You can use JitPack.io to implement SafeCombat as a dependency in your project_  
+[![](https://jitpack.io/v/Game-Of-Arkadia/Plugin-SafeCombat.svg)](https://jitpack.io/#Game-Of-Arkadia/Plugin-SafeCombat)
+
+### Events
+Events aren't cancellable yet.
+> **PlayerStartsFightingEvent**
+> - Called when the player enters in combat mode.
+> - Called twice : for the attacker and the attacked.
+> - Custom getters :
+>   - **getPlayer()** Get the player concerned.
+>   - **getType()** Get if the player is the attacker or the attacked.
+
+> **PlayerStopsFightingEvent**
+> - Called when the player leaves the combat mode.
+> - The player can be the attacker or the attacked.
+> - Custom getter :
+>   - **getPlayer()** Get the player concerned.
+
+# Soft dependencies
 
 - **WorldGuard**
-- **SaberFactions**
+- A **Factions** plugin _(SaberFactions recommended)_

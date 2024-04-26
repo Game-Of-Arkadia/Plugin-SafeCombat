@@ -17,16 +17,13 @@
 
 package fr.keykatyu.safecombat;
 
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.flags.Flag;
-import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
-import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
+import fr.keykatyu.safecombat.bridge.WGBridge;
 import fr.keykatyu.safecombat.command.ProtectionCommand;
 import fr.keykatyu.safecombat.listener.ForceFieldListener;
 import fr.keykatyu.safecombat.listener.SafeCombatListener;
 import fr.keykatyu.safecombat.util.Config;
 import fr.keykatyu.safecombat.util.Lang;
+import fr.keykatyu.safecombat.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -40,23 +37,17 @@ public final class Main extends JavaPlugin {
     private static Main INSTANCE;
     private static CombatManager combatManager;
     private static Lang lang;
+    private static boolean isWGEnabled;
+    private static boolean isFactionsEnabled;
+
     private static final List<String> kickedPlayers = new ArrayList<>();
     private static final List<String> diedPlayers = new ArrayList<>();
-    public static StateFlag ENTER_SAFE_ZONE_PVP;
 
     @Override
     public void onLoad() {
-        // Register custom WG flag
-        FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
-        try {
-            StateFlag enterSafeZonePvPFlag = new StateFlag("enter-safe-zone-pvp", true);
-            registry.register(enterSafeZonePvPFlag);
-            ENTER_SAFE_ZONE_PVP = enterSafeZonePvPFlag;
-        } catch (FlagConflictException e) {
-            Flag<?> existing = registry.get("enter-safe-zone-pvp");
-            if (existing instanceof StateFlag) {
-                ENTER_SAFE_ZONE_PVP = (StateFlag) existing;
-            }
+        if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+            isWGEnabled = true;
+            WGBridge.load();
         }
     }
 
@@ -72,11 +63,20 @@ public final class Main extends JavaPlugin {
         Lang.setupFiles();
         lang = new Lang(getConfig().getString("language"));
 
+        if(isWGEnabled) {
+            Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
+            getServer().getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
+        }
+
+        if (getServer().getPluginManager().getPlugin("Factions") != null) {
+            isFactionsEnabled = true;
+            getServer().getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.factions"));
+        }
+
         // Setup command, listeners and managers
         getCommand("protection").setExecutor(new ProtectionCommand());
         combatManager = new CombatManager(Config.getStringList("playerstokill"), Config.getMap("protected-players"));
         Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
-        Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
     }
 
     @Override
@@ -98,6 +98,15 @@ public final class Main extends JavaPlugin {
     public static Lang getLang() {
         return lang;
     }
+
+    public static boolean isWGEnabled() {
+        return isWGEnabled;
+    }
+
+    public static boolean isFactionsEnabled() {
+        return isFactionsEnabled;
+    }
+
 
     public static List<String> getKickedPlayers() {
         return kickedPlayers;

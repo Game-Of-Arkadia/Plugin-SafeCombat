@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -133,7 +132,8 @@ public class ProtectionCommand implements CommandExecutor, TabCompleter {
             case 4 -> {
                 if(!sender.hasPermission("safecombat.protection")) return results;
                 if(args[0].equalsIgnoreCase("add")) {
-                    completions.addAll(Arrays.stream(ChronoUnit.values()).map(Enum::name).toList());
+                    List<ChronoUnit> supportedUnits = List.of(ChronoUnit.SECONDS, ChronoUnit.MINUTES, ChronoUnit.HOURS, ChronoUnit.DAYS);
+                    completions.addAll(supportedUnits.stream().map(Enum::name).toList());
                 }
                 StringUtil.copyPartialMatches(args[3], completions, results);
             }

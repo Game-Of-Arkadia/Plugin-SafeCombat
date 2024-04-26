@@ -17,20 +17,14 @@
 
 package fr.keykatyu.safecombat.listener;
 
-import com.google.common.collect.ImmutableList;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.sk89q.worldguard.protection.regions.RegionQuery;
 import fr.keykatyu.safecombat.Main;
+import fr.keykatyu.safecombat.bridge.WGBridge;
 import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
 import fr.keykatyu.safecombat.util.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
@@ -43,11 +37,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-import static org.bukkit.block.BlockFace.*;
-
 public final class ForceFieldListener implements Listener {
 
-    private static final List<BlockFace> ALL_DIRECTIONS = ImmutableList.of(NORTH, EAST, SOUTH, WEST);
     private final Map<UUID, Set<Location>> blocksChangedMap = new HashMap<>();
 
     /**
@@ -131,7 +122,7 @@ public final class ForceFieldListener implements Listener {
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
         Location to = e.getTo();
-        if(!isSafeZoneAt(player, to)) return;
+        if(Main.isWGEnabled() && !WGBridge.isSafeZoneAt(player, to)) return;
         player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
         e.setCancelled(true);
     }
@@ -157,7 +148,7 @@ public final class ForceFieldListener implements Listener {
         for (int x = bottomX; x <= topX; x++) {
             for (int z = bottomZ; z <= topZ; z++) {
                 Location location = new Location(playerLoc.getWorld(), x, playerLoc.getY(), z);
-                if (!isSafeZoneAt(player, location)) continue;
+                if (Main.isWGEnabled() && !WGBridge.isSafeZoneAt(player, location)) continue;
 
                 for (int y = -height; y < height; y++) {
                     Location loc = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
@@ -170,10 +161,6 @@ public final class ForceFieldListener implements Listener {
         return blocksToChange;
     }
 
-    private  boolean isSafeZoneAt(Player player, Location location) {
-        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-        StateFlag.State value = query.queryValue(BukkitAdapter.adapt(location), WorldGuardPlugin.inst().wrapPlayer(player), Main.ENTER_SAFE_ZONE_PVP);
-        return value == StateFlag.State.DENY;
-    }
+
 
 }
