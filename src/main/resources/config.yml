@@ -19,14 +19,18 @@ pvp:
     # Time, in seconds
     cooldown-time: 15
   enderpearl:
+    # Allow people to return to safezone with an enderpearl when they are in combat
+    back-safezone: false
     # Set a custom cooldown to ender pearl when thrown
     custom-cooldown: true
     # Time, in seconds
     cooldown-time: 10
-  # Radius to enable forcefield (cancel when player goes back in safezones)
+  # Forcefield settings (cancel when player goes back in safezones)
   forcefield:
     radius: 8
     height: 8
+    material: "RED_STAINED_GLASS"
+
 # Banned commands if the player is in pvp
 banned-commands:
   - "tpyes"

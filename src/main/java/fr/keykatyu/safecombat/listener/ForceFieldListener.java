@@ -94,7 +94,7 @@ public final class ForceFieldListener implements Listener {
             Collection<BlockState> blockStates = new ArrayList<>();
             for (Location location : blocksToChange) {
                 BlockState blockState = location.getBlock().getState().copy();
-                blockState.setType(Material.RED_STAINED_GLASS);
+                blockState.setType(Material.getMaterial(Config.getString("pvp.forcefield.material")));
                 blockStates.add(blockState);
                 blocksRemoved.remove(location);
             }
@@ -116,8 +116,9 @@ public final class ForceFieldListener implements Listener {
      * player is fighting
      * @param e The teleport event
      */
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEnderPearlTeleport(PlayerTeleportEvent e) {
+        if(Config.getBoolean("pvp.enderpearl.back-safezone")) return;
         if(!e.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)) return;
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
