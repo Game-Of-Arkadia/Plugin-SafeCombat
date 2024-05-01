@@ -19,7 +19,7 @@ pvp:
     # Time, in seconds
     cooldown-time: 15
   enderpearl:
-    # Allow people to return to safezone with an enderpearl when they are in combat
+    # Allow people to return to safezone with an enderpearl when they are in combat (deactivates the forcefield)
     back-safezone: false
     # Set a custom cooldown to ender pearl when thrown
     custom-cooldown: true

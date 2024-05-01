@@ -42,20 +42,15 @@ import org.bukkit.inventory.ItemStack;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 public class SafeCombatListener implements Listener {
-
-    public final Set<UUID> processingPlayers = new HashSet<>();
 
     /**
      * Make player and killer in PvP
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerFightPlayer(EntityDamageByEntityEvent e) {
         if(!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
 
@@ -99,7 +94,7 @@ public class SafeCombatListener implements Listener {
      * for respawn protection verification
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent e) {
         Player player = e.getEntity();
         if(Main.getCombatManager().isFighting(player)) {
@@ -113,7 +108,7 @@ public class SafeCombatListener implements Listener {
      * Prevent spawn kill by applying a protection
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerRespawns(PlayerRespawnEvent e) {
         if(!e.getRespawnReason().equals(PlayerRespawnEvent.RespawnReason.DEATH)) return;
         Player player = e.getPlayer();
@@ -129,7 +124,7 @@ public class SafeCombatListener implements Listener {
      * Kill player if he's fighting
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerFightingQuit(PlayerQuitEvent e) {
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
@@ -182,7 +177,7 @@ public class SafeCombatListener implements Listener {
      * Filter kicked players/server restart
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerKicked(PlayerKickEvent e) {
         Main.getKickedPlayers().add(e.getPlayer().getName());
     }
@@ -192,7 +187,7 @@ public class SafeCombatListener implements Listener {
      * in config.yml
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerRiptide(PlayerRiptideEvent e) {
         if(!Config.getBoolean("pvp.trident.riptide-cooldown")) return;
         ItemStack is = e.getItem();
@@ -206,7 +201,7 @@ public class SafeCombatListener implements Listener {
      * in config.yml
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onEnderPearlThrown(ProjectileLaunchEvent e) {
         if(!Config.getBoolean("pvp.enderpearl.custom-cooldown")) return;
         Projectile projectile = e.getEntity();
@@ -219,7 +214,7 @@ public class SafeCombatListener implements Listener {
      * Cancel command if the player is in pvp
      * @param e The event
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerEntersCommand(PlayerCommandPreprocessEvent e) {
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;

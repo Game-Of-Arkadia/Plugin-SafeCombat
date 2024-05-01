@@ -62,7 +62,7 @@ public final class Main extends JavaPlugin {
         Lang.setupFiles();
         lang = new Lang(getConfig().getString("language"));
 
-        if(isWGEnabled) {
+        if(isWGEnabled && !Config.getBoolean("pvp.enderpearl.back-safezone")) {
             Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
             getServer().getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
         }

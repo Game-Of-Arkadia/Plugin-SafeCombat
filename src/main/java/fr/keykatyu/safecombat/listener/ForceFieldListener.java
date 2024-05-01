@@ -73,7 +73,7 @@ public final class ForceFieldListener implements Listener {
      * tries to go into a safe zone while he's fighting
      * @param e The move event
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent e) {
         Location from = e.getFrom();
         Location to = e.getTo();
@@ -161,7 +161,5 @@ public final class ForceFieldListener implements Listener {
         }
         return blocksToChange;
     }
-
-
 
 }
