@@ -27,8 +27,9 @@ pvp:
     cooldown-time: 10
   # Forcefield settings (cancel when player goes back in safezones)
   forcefield:
+    # Higher are the values, greater is the risk of lag
     radius: 8
-    height: 8
+    height: 5
     material: "RED_STAINED_GLASS"
 
 # Banned commands if the player is in pvp

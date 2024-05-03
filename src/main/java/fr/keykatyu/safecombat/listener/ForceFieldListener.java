@@ -17,6 +17,11 @@
 
 package fr.keykatyu.safecombat.listener;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.bridge.WGBridge;
 import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
@@ -34,6 +39,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BlockIterator;
 
 import java.util.*;
 
@@ -45,25 +51,13 @@ public final class ForceFieldListener implements Listener {
      * Cancels old modified blocks when combat stops
      * @param e The SafeCombat's event
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayersCombatEnd(PlayerStopsFightingEvent e) {
         Player player = e.getPlayer();
         if(!blocksChangedMap.containsKey(player.getUniqueId())) return;
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
-            Set<Location> blocksRemoved;
-            if (blocksChangedMap.containsKey(player.getUniqueId())) {
-                blocksRemoved = blocksChangedMap.get(player.getUniqueId());
-            } else {
-                blocksRemoved = new HashSet<>();
-            }
-
-            Collection<BlockState> removedBlockStates = new ArrayList<>();
-            for (Location location : blocksRemoved) {
-                Block block = location.getBlock();
-                removedBlockStates.add(block.getState());
-            }
-            player.sendBlockChanges(removedBlockStates);
-
+            Set<Location> blocksRemoved = blocksChangedMap.getOrDefault(player.getUniqueId(), new HashSet<>());
+            sendRemovedBlocksChanges(player, blocksRemoved);
             blocksChangedMap.remove(player.getUniqueId());
         });
     }
@@ -73,7 +67,7 @@ public final class ForceFieldListener implements Listener {
      * tries to go into a safe zone while he's fighting
      * @param e The move event
      */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent e) {
         Location from = e.getFrom();
         Location to = e.getTo();
@@ -84,28 +78,17 @@ public final class ForceFieldListener implements Listener {
 
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
             Set<Location> blocksToChange = retrieveBlocksToChange(player);
-            Set<Location> blocksRemoved;
-            if (blocksChangedMap.containsKey(player.getUniqueId())) {
-                blocksRemoved = blocksChangedMap.get(player.getUniqueId());
-            } else {
-                blocksRemoved = new HashSet<>();
-            }
+            Set<Location> blocksRemoved = blocksChangedMap.getOrDefault(player.getUniqueId(), new HashSet<>());
 
             Collection<BlockState> blockStates = new ArrayList<>();
             for (Location location : blocksToChange) {
-                BlockState blockState = location.getBlock().getState().copy();
+                BlockState blockState = location.getBlock().getState();
                 blockState.setType(Material.getMaterial(Config.getString("pvp.forcefield.material")));
                 blockStates.add(blockState);
                 blocksRemoved.remove(location);
             }
             player.sendBlockChanges(blockStates);
-
-            Collection<BlockState> removedBlockStates = new ArrayList<>();
-            for (Location location : blocksRemoved) {
-                Block block = location.getBlock();
-                removedBlockStates.add(block.getState());
-            }
-            player.sendBlockChanges(removedBlockStates);
+            sendRemovedBlocksChanges(player, blocksRemoved);
 
             blocksChangedMap.put(player.getUniqueId(), blocksToChange);
         });
@@ -129,6 +112,17 @@ public final class ForceFieldListener implements Listener {
     }
 
     /**
+     * Send to player blocks removed data
+     * @param player The player
+     * @param blocksRemoved The blocks
+     */
+    public void sendRemovedBlocksChanges(Player player, Set<Location> blocksRemoved) {
+        Collection<BlockState> removedBlockStates = new ArrayList<>();
+        blocksRemoved.forEach(blockState -> removedBlockStates.add(blockState.getBlock().getState()));
+        player.sendBlockChanges(removedBlockStates);
+    }
+
+    /**
      * Retrieve blocks to change
      * @param player The event
      * @return A Set of locations corresponding to block locations
@@ -137,28 +131,39 @@ public final class ForceFieldListener implements Listener {
         Set<Location> blocksToChange = new HashSet<>();
         int radius = Config.getInt("pvp.forcefield.radius");
         int height = Config.getInt("pvp.forcefield.height");
+        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
         Location playerLoc = player.getLocation();
-        Location location1 = playerLoc.clone().add(radius, 0, radius);
-        Location location2 = playerLoc.clone().subtract(radius, 0, radius);
 
-        int topX = Math.max(location1.getBlockX(), location2.getBlockX());
-        int bottomX = Math.min(location1.getBlockX(), location2.getBlockX());
-        int topZ = Math.max(location1.getBlockZ(), location2.getBlockZ());
-        int bottomZ = Math.min(location1.getBlockZ(), location2.getBlockZ());
-
-        for (int x = bottomX; x <= topX; x++) {
-            for (int z = bottomZ; z <= topZ; z++) {
-                Location location = new Location(playerLoc.getWorld(), x, playerLoc.getY(), z);
-                if (Main.isWGEnabled() && !WGBridge.isSafeZoneAt(player, location)) continue;
-
-                for (int y = -height; y < height; y++) {
-                    Location loc = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
-                    loc.setY(loc.getY() + y);
-                    if (!loc.getBlock().getType().equals(Material.AIR) && !(loc.getBlock().getBlockData() instanceof Waterlogged)) continue;
-                    blocksToChange.add(new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+        BlockIterator blockIterator = new BlockIterator(player, radius);
+        Set<ProtectedRegion> safeZones = new HashSet<>();
+        // Use block iterator to scan each block around the player
+        while (blockIterator.hasNext()) {
+            Block block = blockIterator.next();
+            // Get applicable region set from the block location
+            ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(block.getLocation()));
+            for(ProtectedRegion region : set) {
+                // Find if there is a safe zone on the block
+                if(WGBridge.isSafeZoneAt(player, block.getLocation())) {
+                    safeZones.add(region);
                 }
             }
         }
+
+        // For each safe zone found around the player
+        for(ProtectedRegion safeZone : safeZones) {
+            // Get the edges of the safe zone
+            List<Location> edgesBlocks = WGBridge.retrieveEdgesBlocks(safeZone, playerLoc.getWorld(), playerLoc.getBlockY());
+            // +/- height
+            for(Location edge : edgesBlocks) {
+                for (int y = -height; y < height; y++) {
+                    Location loc = edge.clone();
+                    loc.setY(loc.getY() + y);
+                    if (!loc.getBlock().getType().equals(Material.AIR) && !(loc.getBlock().getBlockData() instanceof Waterlogged)) continue;
+                    blocksToChange.add(loc);
+                }
+            }
+        }
+
         return blocksToChange;
     }
 
