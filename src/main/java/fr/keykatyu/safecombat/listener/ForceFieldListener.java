@@ -139,7 +139,7 @@ public final class ForceFieldListener implements Listener {
         }
 
         // For each safe zone found around the player
-        for(ProtectedRegion safeZone : WGBridge.getSafeZonesInBlocks(playerLoc.getWorld(), blocksAround)) {
+        for(ProtectedRegion safeZone : WGBridge.getSafeZonesInBlocks(player, blocksAround)) {
             // Get the edges of the safe zone
             List<Location> edgesBlocks = WGBridge.retrieveEdgesBlocks(safeZone, playerLoc, radius);
             // +/- height

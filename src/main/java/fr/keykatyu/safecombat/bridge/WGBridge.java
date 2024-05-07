@@ -30,7 +30,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
@@ -69,18 +68,18 @@ public class WGBridge {
 
     /**
      * Get all safe zones regions into a list of block
-     * @param world The world
+     * @param player The player
      * @param blocks The blocks
      * @return A list of ProtectedRegion, corresponding to safe zones
      */
-    public static Set<ProtectedRegion> getSafeZonesInBlocks(World world, List<BlockVector2> blocks) {
+    public static Set<ProtectedRegion> getSafeZonesInBlocks(Player player, List<BlockVector2> blocks) {
         Set<ProtectedRegion> safeZones = new HashSet<>();
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        RegionManager manager = container.get(BukkitAdapter.adapt(world));
+        RegionManager manager = container.get(BukkitAdapter.adapt(player.getWorld()));
 
         for(Map.Entry<String, ProtectedRegion> regionEntry : manager.getRegions().entrySet()) {
             ProtectedRegion region = regionEntry.getValue();
-            if(region.getFlag(WGBridge.ENTER_SAFE_ZONE_PVP) != StateFlag.State.DENY) continue;
+            if(manager.getApplicableRegions(region).testState(WorldGuardPlugin.inst().wrapPlayer(player), WGBridge.ENTER_SAFE_ZONE_PVP)) continue;
             if(region.containsAny(blocks)) safeZones.add(region);
         }
 
