@@ -17,11 +17,8 @@
 
 package fr.keykatyu.safecombat.listener;
 
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.protection.regions.RegionQuery;
 import fr.keykatyu.safecombat.Main;
 import fr.keykatyu.safecombat.bridge.WGBridge;
 import fr.keykatyu.safecombat.listener.event.PlayerStopsFightingEvent;
@@ -39,7 +36,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.BlockIterator;
 
 import java.util.*;
 
@@ -89,7 +85,6 @@ public final class ForceFieldListener implements Listener {
             }
             player.sendBlockChanges(blockStates);
             sendRemovedBlocksChanges(player, blocksRemoved);
-
             blocksChangedMap.put(player.getUniqueId(), blocksToChange);
         });
     }
@@ -118,7 +113,9 @@ public final class ForceFieldListener implements Listener {
      */
     public void sendRemovedBlocksChanges(Player player, Set<Location> blocksRemoved) {
         Collection<BlockState> removedBlockStates = new ArrayList<>();
-        blocksRemoved.forEach(blockState -> removedBlockStates.add(blockState.getBlock().getState()));
+        for(Location location : blocksRemoved) {
+            removedBlockStates.add(location.getBlock().getState());
+        }
         player.sendBlockChanges(removedBlockStates);
     }
 
@@ -131,34 +128,27 @@ public final class ForceFieldListener implements Listener {
         Set<Location> blocksToChange = new HashSet<>();
         int radius = Config.getInt("pvp.forcefield.radius");
         int height = Config.getInt("pvp.forcefield.height");
-        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
         Location playerLoc = player.getLocation();
 
-        BlockIterator blockIterator = new BlockIterator(player, radius);
-        Set<ProtectedRegion> safeZones = new HashSet<>();
-        // Use block iterator to scan each block around the player
-        while (blockIterator.hasNext()) {
-            Block block = blockIterator.next();
-            // Get applicable region set from the block location
-            ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(block.getLocation()));
-            for(ProtectedRegion region : set) {
-                // Find if there is a safe zone on the block
-                if(WGBridge.isSafeZoneAt(player, block.getLocation())) {
-                    safeZones.add(region);
-                }
+        // Get all blocks (in the radius) around the player
+        List<BlockVector2> blocksAround = new ArrayList<>();
+        for(int x = playerLoc.getBlockX() - radius; x <= playerLoc.getBlockX() + radius; x++) {
+            for(int z = playerLoc.getBlockZ() - radius; z <= playerLoc.getBlockZ() + radius; z++) {
+                blocksAround.add(BlockVector2.at(x, z));
             }
         }
 
         // For each safe zone found around the player
-        for(ProtectedRegion safeZone : safeZones) {
+        for(ProtectedRegion safeZone : WGBridge.getSafeZonesInBlocks(playerLoc.getWorld(), blocksAround)) {
             // Get the edges of the safe zone
-            List<Location> edgesBlocks = WGBridge.retrieveEdgesBlocks(safeZone, playerLoc.getWorld(), playerLoc.getBlockY());
+            List<Location> edgesBlocks = WGBridge.retrieveEdgesBlocks(safeZone, playerLoc, radius);
             // +/- height
             for(Location edge : edgesBlocks) {
                 for (int y = -height; y < height; y++) {
                     Location loc = edge.clone();
                     loc.setY(loc.getY() + y);
-                    if (!loc.getBlock().getType().equals(Material.AIR) && !(loc.getBlock().getBlockData() instanceof Waterlogged)) continue;
+                    Block block = loc.getBlock();
+                    if (!block.isEmpty() && !(block.getBlockData() instanceof Waterlogged) && !block.isPassable()) continue;
                     blocksToChange.add(loc);
                 }
             }
