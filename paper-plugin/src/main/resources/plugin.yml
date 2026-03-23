@@ -10,7 +10,6 @@ softdepend:
 commands:
   protection:
     description: Manage player PvP protection.
-    permission: safecombat.protection
     aliases:
       - pvp-protection
 

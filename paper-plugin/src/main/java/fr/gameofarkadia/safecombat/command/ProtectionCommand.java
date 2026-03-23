@@ -1,33 +1,37 @@
 package fr.gameofarkadia.safecombat.command;
 
+import fr.gameofarkadia.arkadialib.api.commands.PlayerArkadiaCommand;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.listener.ConfirmDisableProtection;
 import fr.gameofarkadia.safecombat.util.Util;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.time.Instant;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ProtectionCommand implements CommandExecutor, TabCompleter {
+/**
+ * Main command.<br/>
+ * Player can disable their protection.<br/>
+ * Admin can add and remove protections.
+ */
+public class ProtectionCommand extends PlayerArkadiaCommand {
+
+    /**
+     * Create and register command.
+     */
+    public ProtectionCommand() {
+        super("protection");
+    }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if(!(sender instanceof Player player)) {
-            sender.sendMessage(Util.prefix() + Main.getLang().get("must-be-player"));
-            return false;
-        }
-
+    protected boolean handleCommand(@NotNull Player player, @NotNull String @NotNull [] args) {
         if(args.length < 1 || args.length > 4) {
             player.sendMessage(Util.prefix() + Main.getLang().get("not-enough-args"));
             return false;
@@ -63,7 +67,8 @@ public class ProtectionCommand implements CommandExecutor, TabCompleter {
 
                     int time = Integer.parseInt(args[2]);
                     ChronoUnit unit = ChronoUnit.valueOf(args[3]);
-                    Main.getCombatManager().setPlayerProtected(target, Instant.now().plus(time, unit), 1200);
+                    Duration duration =  Duration.of(time, unit);
+                    Main.getCombatManager().addPlayerProtection(target, duration);
                     player.sendMessage(Util.prefix() + Main.getLang().get("protection.added-admin"));
                     target.sendMessage(Util.prefix() + Main.getLang().get("protection.added"));
                 } catch (IllegalArgumentException e) {
@@ -82,19 +87,21 @@ public class ProtectionCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(Util.prefix() + Main.getLang().get("player-offline"));
                     return false;
                 }
-                Main.getCombatManager().getProtectedPlayers().get(target.getUniqueId()).cancel();
-                Main.getCombatManager().getProtectedPlayers().remove(target.getUniqueId());
-                target.sendMessage(Util.prefix() + Main.getLang().get("protection.removed-admin"));
-                player.sendMessage(Util.prefix() + Main.getLang().get("protection.target-removed"));
+                if(Main.getCombatManager().removePlayerProtection(target)) {
+                    target.sendMessage(Util.prefix() + Main.getLang().get("protection.removed-admin"));
+                    player.sendMessage(Util.prefix() + Main.getLang().get("protection.target-removed"));
+                } else {
+                    player.sendMessage(Util.prefix() + "§cThis player was not protected.");
+                }
             }
         }
 
         return true;
     }
 
-    @Nullable
+
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    protected @Nullable List<String> handleTabComplete(@NotNull Player sender, @NotNull String @NotNull [] args) {
         List<String> results = new ArrayList<>();
         List<String> completions = new ArrayList<>();
         switch (args.length) {
@@ -125,5 +132,4 @@ public class ProtectionCommand implements CommandExecutor, TabCompleter {
         Collections.sort(results);
         return results;
     }
-
 }

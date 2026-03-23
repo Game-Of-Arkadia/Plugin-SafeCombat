@@ -40,10 +40,9 @@ public class PlayerDisconnectedTask implements Runnable, Listener {
     @Override
     public void run() {
         player.getServer().broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")));
-        Main.getCombatManager().getPlayersToKill().add(player.getName());
-        if(Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
-            Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
-            Main.getCombatManager().getFightingPlayers().remove(player.getName());
+        Main.getCombatManager().addPlayerToKill(player);
+
+        if(Main.getCombatManager().removeFromFighting(player)) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
         }
 

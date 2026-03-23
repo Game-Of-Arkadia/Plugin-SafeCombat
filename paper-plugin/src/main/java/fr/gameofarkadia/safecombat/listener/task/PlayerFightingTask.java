@@ -4,6 +4,7 @@ import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
 import fr.gameofarkadia.safecombat.util.Config;
 import fr.gameofarkadia.safecombat.util.Util;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -16,7 +17,7 @@ import java.time.Instant;
 public class PlayerFightingTask implements Runnable {
 
     private final int taskId;
-    private Instant startingInstant;
+    @Setter private Instant startingInstant;
     private final Player player;
     private final BossBar bossBar;
 
@@ -45,13 +46,9 @@ public class PlayerFightingTask implements Runnable {
         Bukkit.getScheduler().cancelTask(taskId);
         bossBar.removeAll();
         bossBar.setVisible(false);
-        Main.getCombatManager().getFightingPlayers().remove(player.getName());
+        Main.getCombatManager().removePlayerToKill(player);
         Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
         player.sendMessage(Util.prefix() + Main.getLang().get("fight.finished"));
-    }
-
-    public void setStartingInstant(Instant startingInstant) {
-        this.startingInstant = startingInstant;
     }
 
 }

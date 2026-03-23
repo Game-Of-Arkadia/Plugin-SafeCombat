@@ -29,6 +29,10 @@ public class PlayerStopsFightingEvent extends Event {
         return player;
     }
 
+    /**
+     * Bukkit boilerplate.
+     * @return handlers.
+     */
     public static @NotNull HandlerList getHandlerList() {
         return HANDLERS;
     }

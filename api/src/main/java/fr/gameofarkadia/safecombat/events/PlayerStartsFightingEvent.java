@@ -42,6 +42,10 @@ public class PlayerStartsFightingEvent extends Event {
         return type;
     }
 
+    /**
+     * Bukkit boilerplate.
+     * @return handlers.
+     */
     public static @NotNull HandlerList getHandlerList() {
         return HANDLERS;
     }
@@ -51,8 +55,14 @@ public class PlayerStartsFightingEvent extends Event {
         return HANDLERS;
     }
 
+    /**
+     * Role of the player in the attack.
+     */
     public enum Type {
+        /** Player attacking the other. */
         ATTACKER,
+
+        /** Player attacked by the other. */
         ATTACKED
     }
 

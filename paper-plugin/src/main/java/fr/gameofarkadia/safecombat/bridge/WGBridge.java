@@ -24,6 +24,9 @@ public class WGBridge {
 
     public static StateFlag ENTER_SAFE_ZONE_PVP;
 
+    /**
+     * Load the flat to WG.
+     */
     public static void load() {
         // Register custom WG flag
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
@@ -60,6 +63,7 @@ public class WGBridge {
         Set<ProtectedRegion> safeZones = new HashSet<>();
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionManager manager = container.get(BukkitAdapter.adapt(player.getWorld()));
+        if(manager == null) return safeZones;
 
         for(Map.Entry<String, ProtectedRegion> regionEntry : manager.getRegions().entrySet()) {
             ProtectedRegion region = regionEntry.getValue();
@@ -114,7 +118,7 @@ public class WGBridge {
 
                 // Loop all the points each other from the first to the last
                 // to get edges blocks
-                BlockVector2 previousPoint = points.get(0);
+                BlockVector2 previousPoint = points.getFirst();
                 for(int i = 1; i <= points.size(); i++) {
                     if(i == points.size()) i = 0;
 

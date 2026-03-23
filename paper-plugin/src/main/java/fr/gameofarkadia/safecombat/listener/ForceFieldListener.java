@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -31,7 +32,7 @@ public final class ForceFieldListener implements Listener {
      * @param e The SafeCombat's event
      */
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayersCombatEnd(PlayerStopsFightingEvent e) {
+    void onPlayersCombatEnd(@NotNull PlayerStopsFightingEvent e) {
         Player player = e.getPlayer();
         if(!blocksChangedMap.containsKey(player.getUniqueId())) return;
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
@@ -62,7 +63,7 @@ public final class ForceFieldListener implements Listener {
             Collection<BlockState> blockStates = new ArrayList<>();
             for (Location location : blocksToChange) {
                 BlockState blockState = location.getBlock().getState();
-                blockState.setType(Material.getMaterial(Config.getString("pvp.forcefield.material")));
+                blockState.setType(Config.getMaterial("pvp.forcefield.material"));
                 blockStates.add(blockState);
                 blocksRemoved.remove(location);
             }

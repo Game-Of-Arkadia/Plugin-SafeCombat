@@ -1,4 +1,4 @@
-package fr.gameofarkadia.safecombat.events;
+package fr.gameofarkadia.safecombat;
 
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,8 @@ public interface SafeCombatManager {
   /**
    * Cancel a protection.
    * @param player the player to cancel the protection of.
+   * @return {@code true} if the player was protected and is now unprotected, {@code false} otherwise.
    */
-  void removePlayerProtection(@NotNull OfflinePlayer player);
+  boolean removePlayerProtection(@NotNull OfflinePlayer player);
 
 }

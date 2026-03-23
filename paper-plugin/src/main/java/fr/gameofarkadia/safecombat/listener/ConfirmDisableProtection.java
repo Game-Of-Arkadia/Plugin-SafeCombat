@@ -27,8 +27,7 @@ public class ConfirmDisableProtection implements Listener {
         if(e.getMessage().equals(Main.getLang().get("protection.cancellation-cancel-code"))) {
             player.sendMessage(Util.prefix() + Main.getLang().get("protection.cancelled"));
         } else if (e.getMessage().equals(Main.getLang().get("protection.cancellation-code"))) {
-            Main.getCombatManager().getProtectedPlayers().get(player.getUniqueId()).cancel();
-            Main.getCombatManager().getProtectedPlayers().remove(player.getUniqueId());
+            Main.getCombatManager().removePlayerProtection(player);
             player.sendMessage(Util.prefix() + Main.getLang().get("protection.removed"));
         } else {
             player.sendMessage(Util.prefix() + Main.getLang().get("protection.try-again"));

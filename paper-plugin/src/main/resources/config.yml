@@ -47,6 +47,3 @@ banned-commands:
   - "spawn"
   - "espawn"
   - "f home"
-
-# DO NOT TOUCH IF YOU DON'T KNOW WHAT YOU'RE DOING
-protected-players:

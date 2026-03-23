@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2024. KeyKatyu / Antoine D. (keykatyu@gmail.com)
- *
- * This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as published
- *   by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package fr.gameofarkadia.safecombat;
 
 import fr.gameofarkadia.safecombat.bridge.WGBridge;
@@ -24,27 +7,26 @@ import fr.gameofarkadia.safecombat.listener.SafeCombatListener;
 import fr.gameofarkadia.safecombat.util.Config;
 import fr.gameofarkadia.safecombat.util.Lang;
 import fr.gameofarkadia.safecombat.util.Util;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class Main extends JavaPlugin {
 
     private static Main INSTANCE;
-    private static CombatManager combatManager;
-    private static Lang lang;
-    private static boolean isWGEnabled;
+    @Getter private static final CombatManager combatManager = new CombatManager();
+    @Getter  private static Lang lang;
+    @Getter private static boolean isWGEnabled;
 
-    private static final List<String> kickedPlayers = new ArrayList<>();
-    private static final List<String> diedPlayers = new ArrayList<>();
+    @Getter private static final Set<UUID> kickedPlayers = new HashSet<>();
+    @Getter private static final Set<UUID> diedPlayers = new HashSet<>();
 
     @Override
     public void onLoad() {
-        if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+        SafeCombatAPI.initialize(combatManager);
+        if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             isWGEnabled = true;
             WGBridge.load();
         }
@@ -68,8 +50,7 @@ public final class Main extends JavaPlugin {
         }
 
         // Setup command, listeners and managers
-        getCommand("protection").setExecutor(new ProtectionCommand());
-        combatManager = new CombatManager(Config.getStringList("playerstokill"), Config.getMap("protected-players"));
+        new ProtectionCommand();
         Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
     }
 
@@ -83,26 +64,6 @@ public final class Main extends JavaPlugin {
 
     public static Main getInstance() {
         return INSTANCE;
-    }
-
-    public static CombatManager getCombatManager() {
-        return combatManager;
-    }
-
-    public static Lang getLang() {
-        return lang;
-    }
-
-    public static boolean isWGEnabled() {
-        return isWGEnabled;
-    }
-
-    public static List<String> getKickedPlayers() {
-        return kickedPlayers;
-    }
-
-    public static List<String> getDiedPlayers() {
-        return diedPlayers;
     }
 
 }

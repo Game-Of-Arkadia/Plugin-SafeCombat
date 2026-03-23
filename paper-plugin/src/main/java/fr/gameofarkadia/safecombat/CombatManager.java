@@ -3,90 +3,114 @@ package fr.gameofarkadia.safecombat;
 import fr.gameofarkadia.safecombat.listener.task.PlayerFightingTask;
 import fr.gameofarkadia.safecombat.listener.task.PlayerProtectedTask;
 import fr.gameofarkadia.safecombat.util.Util;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnmodifiableView;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages which player is fighting with who.
  */
-public class CombatManager {
+public class CombatManager implements SafeCombatManager {
 
-    private final Map<String, PlayerFightingTask> fightingPlayers = new HashMap<>();
-    private final Map<UUID, PlayerProtectedTask> protectedPlayers = new HashMap<>();
-    private final List<String> playersToKill;
+  private final Map<UUID, PlayerFightingTask> fightingPlayers = new HashMap<>();
+  private final Map<UUID, PlayerProtectedTask> protectedPlayers = new HashMap<>();
+  private final Set<UUID> playersToKill = new HashSet<>();
 
-    public CombatManager(@NotNull List<String> playersToKill, @NotNull Map<String, Object> protectedPlayers) {
-        this.playersToKill = playersToKill;
-        protectedPlayers.forEach((str, obj) -> {
-            if(str.equalsIgnoreCase("uuid")) return;
-            UUID uuid = UUID.fromString(str);
-            this.protectedPlayers.put(uuid, new PlayerProtectedTask(Bukkit.getOfflinePlayer(uuid), Instant.ofEpochMilli((Long) obj), 1200));
-        });
+  /**
+   * Get the players currently in fight.
+   *
+   * @return a non-mutable collection.
+   */
+  public @UnmodifiableView Map<UUID, PlayerFightingTask> getFightingPlayers() {
+    return fightingPlayers;
+  }
+
+  /**
+   * Get the players to be killed.
+   *
+   * @return a non-mutable collection.
+   */
+  public @UnmodifiableView Collection<UUID> getPlayersToKill() {
+    return Collections.unmodifiableCollection(playersToKill);
+  }
+
+  /**
+   * Add a player to be killed.
+   * @param player target player.
+   */
+  public void addPlayerToKill(@NotNull OfflinePlayer player) {
+    playersToKill.add(player.getUniqueId());
+  }
+
+  public void removePlayerToKill(@NotNull OfflinePlayer player) {
+    playersToKill.remove(player.getUniqueId());
+  }
+
+  /**
+   * Get the players currently protected.
+   *
+   * @return a non-mutable map.
+   */
+  public @UnmodifiableView Map<UUID, PlayerProtectedTask> getProtectedPlayers() {
+    return Collections.unmodifiableMap(protectedPlayers);
+  }
+
+  /**
+   * Make the player fighting : run the task and show the messages & titles
+   *
+   * @param player The player
+   */
+  public void setPlayerFighting(@NotNull Player player) {
+    fightingPlayers.put(player.getUniqueId(), new PlayerFightingTask(player));
+    player.sendMessage(Util.prefix() + Main.getLang().get("fight.enter"));
+  }
+
+  /**
+   * Update starting instant (if the player is damaged again)
+   *
+   * @param player The player
+   */
+  public void updateInstant(@NotNull OfflinePlayer player) {
+    fightingPlayers.get(player.getUniqueId()).setStartingInstant(Instant.now());
+  }
+
+  @Override
+  public boolean isFighting(@NotNull UUID playerUUID) {
+    return fightingPlayers.containsKey(playerUUID);
+  }
+
+  @Override
+  public boolean isProtected(@NotNull UUID playerUUID) {
+    return protectedPlayers.containsKey(playerUUID);
+  }
+
+  @Override
+  public void addPlayerProtection(@NotNull OfflinePlayer player, @NotNull Duration duration) {
+    Instant end = Instant.now().plus(duration);
+    protectedPlayers.put(player.getUniqueId(), new PlayerProtectedTask(player, end));
+  }
+
+  @Override
+  public boolean removePlayerProtection(@NotNull OfflinePlayer player) {
+    var task = protectedPlayers.remove(player.getUniqueId());
+    if (task != null) {
+      task.cancel();
+      return true;
     }
+    return false;
+  }
 
-    public Map<String, PlayerFightingTask> getFightingPlayers() {
-        return fightingPlayers;
+  public boolean removeFromFighting(@NotNull OfflinePlayer player) {
+    var task = fightingPlayers.remove(player.getUniqueId());
+    if(task != null) {
+      task.cancel();
+      return true;
     }
-
-    public List<String> getPlayersToKill() {
-        return playersToKill;
-    }
-
-    public Map<UUID, PlayerProtectedTask> getProtectedPlayers() {
-        return protectedPlayers;
-    }
-
-    /**
-     * Make the player fighting : run the task and show the messages & titles
-     * @param player The player
-     */
-    public void setPlayerFighting(Player player) {
-        fightingPlayers.put(player.getName(), new PlayerFightingTask(player));
-        player.sendMessage(Util.prefix() + Main.getLang().get("fight.enter"));
-    }
-
-    /**
-     * Make the player protected - it can't pvp and be attacked
-     * @param player The player
-     * @param protectionEnd The Instant the protection ends
-     * @param taskPeriod Task period
-     */
-    public void setPlayerProtected(OfflinePlayer player, Instant protectionEnd, long taskPeriod) {
-        protectedPlayers.put(player.getUniqueId(), new PlayerProtectedTask(player, protectionEnd, taskPeriod));
-    }
-
-    /**
-     * Check if player is in fight
-     * @param player The player
-     * @return true or false
-     */
-    public boolean isFighting(Player player) {
-        return fightingPlayers.containsKey(player.getName());
-    }
-
-    /**
-     * Check if player is protected
-     * @param player The player
-     * @return true or false
-     */
-    public boolean isProtected(OfflinePlayer player) {
-        return protectedPlayers.containsKey(player.getUniqueId());
-    }
-
-    /**
-     * Update starting instant (if the player is damaged again)
-     * @param player The player
-     */
-    public void updateInstant(Player player) {
-        fightingPlayers.get(player.getName()).setStartingInstant(Instant.now());
-    }
-
+    return false;
+  }
 }

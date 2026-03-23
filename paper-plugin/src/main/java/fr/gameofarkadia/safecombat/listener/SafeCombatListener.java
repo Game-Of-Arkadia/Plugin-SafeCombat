@@ -25,8 +25,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 import java.util.List;
 
 public class SafeCombatListener implements Listener {
@@ -82,11 +81,9 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     void onPlayerDeath(@NotNull PlayerDeathEvent e) {
         Player player = e.getEntity();
-        if(Main.getCombatManager().isFighting(player)) {
-            Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
-        }
+        Main.getCombatManager().removeFromFighting(player);
         if(player.getKiller() == null) return;
-        Main.getDiedPlayers().add(e.getEntity().getName());
+        Main.getDiedPlayers().add(e.getEntity().getUniqueId());
     }
 
     /**
@@ -97,11 +94,11 @@ public class SafeCombatListener implements Listener {
     void onPlayerRespawns(@NotNull PlayerRespawnEvent e) {
         if(!e.getRespawnReason().equals(PlayerRespawnEvent.RespawnReason.DEATH)) return;
         Player player = e.getPlayer();
-        if(!Main.getDiedPlayers().contains(player.getName())) return;
-        Main.getDiedPlayers().remove(player.getName());
+        if(!Main.getDiedPlayers().contains(player.getUniqueId())) return;
+        Main.getDiedPlayers().remove(player.getUniqueId());
         int respawnProtection = Config.getInt("pvp.respawn-protection");
-        if(respawnProtection != -1) {
-           Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(respawnProtection, ChronoUnit.SECONDS), 20);
+        if(respawnProtection > 0) {
+           Main.getCombatManager().addPlayerProtection(player, Duration.ofSeconds(respawnProtection));
         }
     }
 
@@ -113,13 +110,12 @@ public class SafeCombatListener implements Listener {
     void onPlayerFightingQuit(@NotNull PlayerQuitEvent e) {
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
-        if(Main.getKickedPlayers().contains(player.getName())) return;
+        if(Main.getKickedPlayers().contains(player.getUniqueId())) return;
         if(Config.getInt("pvp.disconnection") == -1) {
             player.getServer().broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")));
-            Main.getCombatManager().getPlayersToKill().add(player.getName());
-            if(Main.getCombatManager().getFightingPlayers().containsKey(player.getName())) {
-                Main.getCombatManager().getFightingPlayers().get(player.getName()).cancel();
-                Main.getCombatManager().getFightingPlayers().remove(player.getName());
+            Main.getCombatManager().addPlayerToKill(player);
+
+            if(Main.getCombatManager().removeFromFighting(player)) {
                 Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
             }
 
@@ -144,18 +140,19 @@ public class SafeCombatListener implements Listener {
 
         // Newbie / PvP protection
         if(player.getLastPlayed() == 0) {
-            Main.getCombatManager().setPlayerProtected(player, Instant.now().plus(Config.getInt("pvp.newbie-protection"), ChronoUnit.HOURS), 1200);
+            Main.getCombatManager().addPlayerProtection(player, Duration.ofHours(Config.getInt("pvp.newbie-protection")));
         } else if (Main.getCombatManager().isProtected(player)) {
             Main.getCombatManager().getProtectedPlayers().get(player.getUniqueId()).getBossBar().addPlayer(player);
             player.sendMessage(Util.prefix() + Main.getLang().get("protection.join"));
         }
 
         // Combat disconnection
-        if(!Main.getCombatManager().getPlayersToKill().contains(player.getName())) return;
-        Main.getCombatManager().getPlayersToKill().remove(player.getName());
-        e.setJoinMessage("§6§l" + player.getName() + " §e" + Main.getLang().get("fight.player-reconnected"));
-        player.getInventory().clear();
-        player.setHealth(0);
+        if(Main.getCombatManager().getPlayersToKill().contains(player.getUniqueId())) {
+            Main.getCombatManager().removePlayerToKill(player);
+            e.setJoinMessage("§6§l" + player.getName() + " §e" + Main.getLang().get("fight.player-reconnected"));
+            player.getInventory().clear();
+            player.setHealth(0);
+        }
     }
 
     /**
@@ -164,7 +161,7 @@ public class SafeCombatListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     void onPlayerKicked(@NotNull PlayerKickEvent e) {
-        Main.getKickedPlayers().add(e.getPlayer().getName());
+        Main.getKickedPlayers().add(e.getPlayer().getUniqueId());
     }
 
     /**
