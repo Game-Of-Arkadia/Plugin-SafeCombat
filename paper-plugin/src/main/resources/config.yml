@@ -1,0 +1,49 @@
+# Name of the file (without its extension) in "lang" directory,
+# that will be used for the messages translations.
+# You can create a custom file, with your language, inside the directory and use it there.
+language: en
+pvp:
+  # Time, in seconds, to stop be considered in PvP
+  duration: 30
+  # Time, in seconds, to be considered to have leaved the fight
+  # -1 to disable
+  disconnection: 10
+  # Time, in hours, a new player is protected and couldn't attack
+  newbie-protection: 48
+  # Time, in seconds, a respawned player is protected and couldn't attack
+  # -1 to disable
+  respawn-protection: 30
+  trident:
+    # Cooldown a trident material to the player if it has a riptide enchant
+    riptide-cooldown: true
+    # Time, in seconds
+    cooldown-time: 15
+  enderpearl:
+    # Allow people to return to safezone with an enderpearl when they are in combat (deactivates the forcefield)
+    back-safezone: false
+    # Set a custom cooldown to ender pearl when thrown
+    custom-cooldown: true
+    # Time, in seconds
+    cooldown-time: 10
+  # Forcefield settings (cancel when player goes back in safezones)
+  forcefield:
+    # Higher are the values, greater is the risk of lag
+    radius: 8
+    height: 5
+    material: "RED_STAINED_GLASS"
+
+# Banned commands if the player is in pvp
+banned-commands:
+  - "tpyes"
+  - "etpyes"
+  - "tpaccept"
+  - "etpaccept"
+  - "sethome"
+  - "esethome"
+  - "createhome"
+  - "ecreatehome"
+  - "home"
+  - "ehome"
+  - "spawn"
+  - "espawn"
+  - "f home"

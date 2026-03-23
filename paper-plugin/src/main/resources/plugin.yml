@@ -1,0 +1,19 @@
+name: SafeCombat
+version: '${project.version}'
+main: fr.gameofarkadia.safecombat.Main
+api-version: '1.21'
+description: '${project.description}'
+
+softdepend:
+  - WorldGuard
+
+commands:
+  protection:
+    description: Manage player PvP protection.
+    aliases:
+      - pvp-protection
+
+permissions:
+  safecombat.protection:
+    description: Allows admins to manage players PvP protection status.
+    default: op

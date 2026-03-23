@@ -1,0 +1,54 @@
+package fr.gameofarkadia.safecombat.listener.task;
+
+import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
+import fr.gameofarkadia.safecombat.util.Config;
+import fr.gameofarkadia.safecombat.util.Util;
+import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
+import org.bukkit.entity.Player;
+
+import java.time.Duration;
+import java.time.Instant;
+
+public class PlayerFightingTask implements Runnable {
+
+    private final int taskId;
+    @Setter private Instant startingInstant;
+    private final Player player;
+    private final BossBar bossBar;
+
+    public PlayerFightingTask(Player player) {
+        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), this, 0, 20).getTaskId();
+        startingInstant = Instant.now();
+        this.player = player;
+        bossBar = Bukkit.createBossBar(Main.getLang().get("fight.boss-bar").replaceAll("%duration%", String.valueOf(Config.getInt("pvp.duration"))), BarColor.RED, BarStyle.SEGMENTED_10);
+        bossBar.addPlayer(player);
+        bossBar.setVisible(true);
+    }
+
+    @Override
+    public void run() {
+        Duration duration = Duration.between(startingInstant, Instant.now());
+        if(duration.toSeconds() >= Config.getInt("pvp.duration")) {
+            cancel();
+        } else {
+            int timeLeft = (int) (Config.getInt("pvp.duration") - duration.toSeconds());
+            bossBar.setTitle(Main.getLang().get("fight.boss-bar").replaceAll("%duration%", String.valueOf(timeLeft)));
+            bossBar.setProgress((double) timeLeft / Config.getInt("pvp.duration"));
+        }
+    }
+
+    public void cancel() {
+        Bukkit.getScheduler().cancelTask(taskId);
+        bossBar.removeAll();
+        bossBar.setVisible(false);
+        Main.getCombatManager().removePlayerToKill(player);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
+        player.sendMessage(Util.prefix() + Main.getLang().get("fight.finished"));
+    }
+
+}
