@@ -44,8 +44,13 @@ public final class Lang {
         }
     }
 
-    public String get(String path) {
-        return langConfig.getString(path).replaceAll("&", "§");
+    /**
+     * Get a translation.
+     * @param path key.
+     * @return a non-nulll string.
+     */
+    public @NotNull String get(@NotNull String path) {
+        return langConfig.getString(path, "??" + path + "??").replaceAll("&", "§");
     }
 
     public static void setupFiles() {

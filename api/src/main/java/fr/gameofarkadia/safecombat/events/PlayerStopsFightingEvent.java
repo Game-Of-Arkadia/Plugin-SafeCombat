@@ -1,5 +1,6 @@
 package fr.gameofarkadia.safecombat.events;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,13 +12,13 @@ import org.jetbrains.annotations.NotNull;
 public class PlayerStopsFightingEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
-    private final Player player;
+    private final OfflinePlayer player;
 
     /**
      * New instance.
      * @param player player to exit fight.
      */
-    public PlayerStopsFightingEvent(@NotNull Player player) {
+    public PlayerStopsFightingEvent(@NotNull OfflinePlayer player) {
         this.player = player;
     }
 
@@ -25,7 +26,7 @@ public class PlayerStopsFightingEvent extends Event {
      * Get the player concerned
      * @return The player
      */
-    public @NotNull Player getPlayer() {
+    public @NotNull OfflinePlayer getPlayer() {
         return player;
     }
 

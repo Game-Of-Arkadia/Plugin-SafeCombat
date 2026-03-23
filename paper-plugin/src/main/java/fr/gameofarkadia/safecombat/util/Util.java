@@ -1,6 +1,7 @@
 package fr.gameofarkadia.safecombat.util;
 
 import fr.gameofarkadia.safecombat.Main;
+import org.bukkit.Bukkit;
 
 /**
  * Utils
@@ -21,7 +22,7 @@ public final class Util {
      * @param msg The message to send
      */
     public static void console(String msg) {
-        Main.getInstance().getServer().getConsoleSender().sendMessage(prefix() + msg);
+        Bukkit.getConsoleSender().sendMessage(prefix() + msg);
     }
 
 }

@@ -11,7 +11,8 @@ fight:
   finished: "&aVous n'êtes plus en combat."
   command-banned: "&cCette commande est bannie en combat. Veuillez attendre de ne plus l'être."
   boss-bar: "&4&l⚔ COMBAT &8| &c&l%duration%&cs restantes"
-  player-disconnected: "s'est déconnecté en combat."
+  player-disconnected: "s'est déconnecté en combat. Il a %duration% pour se reconnecter."
+  player-disconnected-punishment: "ne s'est pas reconnecté à temps. Il a été puni pour cela."
   player-reconnected: "s'est reconnecté après sa déconnexion en combat."
 protection:
   duration-format: "HH'h'mm'm'ss's'"

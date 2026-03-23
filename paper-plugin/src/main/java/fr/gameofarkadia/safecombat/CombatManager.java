@@ -44,10 +44,12 @@ public class CombatManager implements SafeCombatManager {
    * @param player target player.
    */
   public void addPlayerToKill(@NotNull OfflinePlayer player) {
+    Main.getInstance().getSLF4JLogger().info("Player ADDED to to-kill list: {}.", player.getUniqueId());
     playersToKill.add(player.getUniqueId());
   }
 
   public void removePlayerToKill(@NotNull OfflinePlayer player) {
+    Main.getInstance().getSLF4JLogger().info("Player REMOVED from to-kill list: {}.", player.getUniqueId());
     playersToKill.remove(player.getUniqueId());
   }
 

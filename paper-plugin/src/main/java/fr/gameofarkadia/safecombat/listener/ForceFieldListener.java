@@ -9,6 +9,7 @@ import fr.gameofarkadia.safecombat.util.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Waterlogged;
@@ -33,11 +34,13 @@ public final class ForceFieldListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     void onPlayersCombatEnd(@NotNull PlayerStopsFightingEvent e) {
-        Player player = e.getPlayer();
-        if(!blocksChangedMap.containsKey(player.getUniqueId())) return;
+        OfflinePlayer player = e.getPlayer();
+        if(!blocksChangedMap.containsKey(player.getUniqueId()) || !player.isOnline()) return;
+        Player online = Objects.requireNonNull(player.getPlayer());
+
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
             Set<Location> blocksRemoved = blocksChangedMap.getOrDefault(player.getUniqueId(), new HashSet<>());
-            sendRemovedBlocksChanges(player, blocksRemoved);
+            sendRemovedBlocksChanges(online, blocksRemoved);
             blocksChangedMap.remove(player.getUniqueId());
         });
     }

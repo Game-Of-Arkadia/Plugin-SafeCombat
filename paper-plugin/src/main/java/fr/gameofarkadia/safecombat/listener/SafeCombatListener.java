@@ -1,5 +1,6 @@
 package fr.gameofarkadia.safecombat.listener;
 
+import fr.gameofarkadia.arkadialib.api.utils.DurationUtils;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.events.PlayerStartsFightingEvent;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
@@ -111,9 +112,10 @@ public class SafeCombatListener implements Listener {
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
         if(Main.getKickedPlayers().contains(player.getUniqueId())) return;
-        if(Config.getInt("pvp.disconnection") == -1) {
-            player.getServer().broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")));
-            Main.getCombatManager().addPlayerToKill(player);
+        int duration = Config.getInt("pvp.disconnection");
+        if(duration < 0) {
+            Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")
+                .replace("%duration%", DurationUtils.formatDuration(Duration.ofSeconds(duration)))));
 
             if(Main.getCombatManager().removeFromFighting(player)) {
                 Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
@@ -126,7 +128,8 @@ public class SafeCombatListener implements Listener {
                 }
             });
         } else {
-            Main.getInstance().getServer().getPluginManager().registerEvents(new PlayerDisconnectedTask(e.getPlayer()), Main.getInstance());
+            Main.getInstance().getSLF4JLogger().warn("Player {} shall be killed !", player.getName());
+            Bukkit.getPluginManager().registerEvents(new PlayerDisconnectedTask(player, duration), Main.getInstance());
         }
     }
 
@@ -147,11 +150,16 @@ public class SafeCombatListener implements Listener {
         }
 
         // Combat disconnection
+        Main.getInstance().getSLF4JLogger().info("Player {} has joined the server. Is in kill-list ? {}.", player.getName(), Main.getCombatManager().getPlayersToKill().contains(player.getUniqueId()));
         if(Main.getCombatManager().getPlayersToKill().contains(player.getUniqueId())) {
+            Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §e" + Main.getLang().get("fight.player-reconnected")));
             Main.getCombatManager().removePlayerToKill(player);
-            e.setJoinMessage("§6§l" + player.getName() + " §e" + Main.getLang().get("fight.player-reconnected"));
+
             player.getInventory().clear();
-            player.setHealth(0);
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                // Inventory has been dropped by disconnect-task. Now, we clear the inventory.
+                player.setHealth(0);
+            }, 5L);
         }
     }
 

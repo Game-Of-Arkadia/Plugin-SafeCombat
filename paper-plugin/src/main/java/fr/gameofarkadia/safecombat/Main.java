@@ -29,7 +29,7 @@ public final class Main extends JavaPlugin {
     @Override
     public void onLoad() {
         SafeCombatAPI.initialize(combatManager);
-        if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("WorldGuard")) {
             isWGEnabled = true;
             WGBridge.load();
         }
@@ -50,7 +50,7 @@ public final class Main extends JavaPlugin {
 
         if(isWGEnabled && !Config.getBoolean("pvp.enderpearl.back-safezone")) {
             Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
-            getServer().getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
+            Bukkit.getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
         }
 
         // Setup command, listeners and managers
