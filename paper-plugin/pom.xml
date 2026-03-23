@@ -46,6 +46,7 @@
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
             <version>${worldguard.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

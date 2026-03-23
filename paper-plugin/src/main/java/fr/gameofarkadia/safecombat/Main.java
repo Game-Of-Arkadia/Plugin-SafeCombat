@@ -6,6 +6,7 @@ import fr.gameofarkadia.safecombat.listener.ForceFieldListener;
 import fr.gameofarkadia.safecombat.listener.SafeCombatListener;
 import fr.gameofarkadia.safecombat.util.Config;
 import fr.gameofarkadia.safecombat.util.Lang;
+import fr.gameofarkadia.safecombat.util.LocalStorage;
 import fr.gameofarkadia.safecombat.util.Util;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -23,6 +24,8 @@ public final class Main extends JavaPlugin {
     @Getter private static final Set<UUID> kickedPlayers = new HashSet<>();
     @Getter private static final Set<UUID> diedPlayers = new HashSet<>();
 
+    private LocalStorage localStorage;
+
     @Override
     public void onLoad() {
         SafeCombatAPI.initialize(combatManager);
@@ -30,6 +33,7 @@ public final class Main extends JavaPlugin {
             isWGEnabled = true;
             WGBridge.load();
         }
+        localStorage = new LocalStorage(getDataFolder());
     }
 
     @Override
@@ -42,7 +46,7 @@ public final class Main extends JavaPlugin {
 
         // Setup lang files
         Lang.setupFiles();
-        lang = new Lang(getConfig().getString("language"));
+        lang = new Lang(getConfig().getString("language", "fr"));
 
         if(isWGEnabled && !Config.getBoolean("pvp.enderpearl.back-safezone")) {
             Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
@@ -52,14 +56,13 @@ public final class Main extends JavaPlugin {
         // Setup command, listeners and managers
         new ProtectionCommand();
         Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
+
+        localStorage.reload();
     }
 
     @Override
     public void onDisable() {
-        Config.setStringList("playerstokill", combatManager.getPlayersToKill());
-        Map<String, Object> protectedPlayers = new HashMap<>();
-        combatManager.getProtectedPlayers().forEach((uuid, task) -> protectedPlayers.put(uuid.toString(), task.getProtectionEnd().toEpochMilli()));
-        Config.setMap("protected-players", protectedPlayers);
+        localStorage.save();
     }
 
     public static Main getInstance() {

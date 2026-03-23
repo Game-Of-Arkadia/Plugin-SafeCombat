@@ -33,16 +33,4 @@ public class Config {
         return Main.getInstance().getConfig().getBoolean(path);
     }
 
-    public static <T> void setStringList(String path, Collection<T> list) {
-        Main.getInstance().getConfig().set(path, list.stream().map(String::valueOf).toList());
-        Main.getInstance().saveConfig();
-    }
-
-    public static void setMap(String path, Map<String, Object> map) {
-        for(Map.Entry<String, Object> entry : map.entrySet()) {
-            Main.getInstance().getConfig().set(path + "." + entry.getKey(), entry.getValue());
-        }
-        Main.getInstance().saveConfig();
-    }
-
 }
