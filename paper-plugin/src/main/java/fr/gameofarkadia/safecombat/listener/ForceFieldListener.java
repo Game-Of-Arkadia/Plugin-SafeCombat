@@ -3,10 +3,11 @@ package fr.gameofarkadia.safecombat.listener;
 import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.bridge.WGBridge;
+import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
 import fr.gameofarkadia.safecombat.util.Config;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -27,6 +28,7 @@ import java.util.*;
 public final class ForceFieldListener implements Listener {
 
     private final Map<UUID, Set<Location>> blocksChangedMap = new HashMap<>();
+    private final PvpConfiguration config = Main.config().getPvpConfiguration();
 
     /**
      * Cancels old modified blocks when combat stops
@@ -38,7 +40,7 @@ public final class ForceFieldListener implements Listener {
         if(!blocksChangedMap.containsKey(player.getUniqueId()) || !player.isOnline()) return;
         Player online = Objects.requireNonNull(player.getPlayer());
 
-        Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
+        SafeCombatScheduler.runAsync(() -> {
             Set<Location> blocksRemoved = blocksChangedMap.getOrDefault(player.getUniqueId(), new HashSet<>());
             sendRemovedBlocksChanges(online, blocksRemoved);
             blocksChangedMap.remove(player.getUniqueId());
@@ -54,12 +56,11 @@ public final class ForceFieldListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent e) {
         Location from = e.getFrom();
         Location to = e.getTo();
-        if(from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY()
-            && from.getBlockZ() == to.getBlockZ()) return;
+        if(from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ()) return;
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
+        SafeCombatScheduler.runAsync(() -> {
             Set<Location> blocksToChange = retrieveBlocksToChange(player);
             Set<Location> blocksRemoved = blocksChangedMap.getOrDefault(player.getUniqueId(), new HashSet<>());
 
@@ -81,14 +82,15 @@ public final class ForceFieldListener implements Listener {
      * player is fighting
      * @param e The teleport event
      */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEnderPearlTeleport(PlayerTeleportEvent e) {
-        if(Config.getBoolean("pvp.enderpearl.back-safezone")) return;
-        if(!e.getCause().equals(PlayerTeleportEvent.TeleportCause.ENDER_PEARL)) return;
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEnderPearlTeleport(@NotNull PlayerTeleportEvent e) {
+        if(!config.isEnderpearlBypassForceField() || e.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) return;
+
         Player player = e.getPlayer();
-        if(!Main.getCombatManager().isFighting(player)) return;
         Location to = e.getTo();
+        if(!Main.getCombatManager().isFighting(player)) return;
         if(Main.isWGEnabled() && !WGBridge.isSafeZoneAt(player, to)) return;
+
         player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
         e.setCancelled(true);
     }

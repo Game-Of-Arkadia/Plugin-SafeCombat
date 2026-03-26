@@ -6,6 +6,7 @@ description: '${project.description}'
 
 softdepend:
   - WorldGuard
+  - HuskSync
 
 commands:
   protection:

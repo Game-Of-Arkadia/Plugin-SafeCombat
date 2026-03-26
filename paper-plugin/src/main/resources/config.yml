@@ -2,31 +2,41 @@
 # that will be used for the messages translations.
 # You can create a custom file, with your language, inside the directory and use it there.
 language: en
+
+database:
+  name: "plugin_safecombat"
+
+# PvP settings
 pvp:
-  # Time, in seconds, to stop be considered in PvP
-  duration: 30
-  # Time, in seconds, to be considered to have leaved the fight
-  # -1 to disable
-  disconnection: 10
-  # Time, in hours, a new player is protected and couldn't attack
-  newbie-protection: 48
-  # Time, in seconds, a respawned player is protected and couldn't attack
-  # -1 to disable
-  respawn-protection: 30
-  trident:
-    # Cooldown a trident material to the player if it has a riptide enchant
-    riptide-cooldown: true
-    # Time, in seconds
-    cooldown-time: 15
+  durations:
+    # Duration of a fight.
+    # A player is only allowed to leave after this duration once a fight started.
+    fight: 30s
+
+    # First-connection duration protection.
+    newbie-protection: 48h
+    # Respawn duration protection.
+    respawn-protection: 30s
+
+    # Time, in seconds, to be considered to have leaved the fight after a disconnection.
+    # If the player did not reconnect until then, he will be punished.
+    allowed-disconnection: 10s
+
+  # Cooldown a trident material to the player if it has a riptide enchant
+  trident-cooldown:
+    enabled: true
+    duration: 15s
+
   enderpearl:
-    # Allow people to return to safezone with an enderpearl when they are in combat (deactivates the forcefield)
-    back-safezone: false
-    # Set a custom cooldown to ender pearl when thrown
+    # If an enderpearl allows the player to bypass the force-field when thrown, even if the player is in pvp.
+    bypass-force-field: false
+    # Set a custom cooldown to enderpearl when thrown
     custom-cooldown: true
-    # Time, in seconds
-    cooldown-time: 10
-  # Forcefield settings (cancel when player goes back in safezones)
-  forcefield:
+    cooldown-time: 10s
+
+  # Forbid player in PvP from going back to a safe-zone
+  force-field:
+    enabled: false
     # Higher are the values, greater is the risk of lag
     radius: 8
     height: 5

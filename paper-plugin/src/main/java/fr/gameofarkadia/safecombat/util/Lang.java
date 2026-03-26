@@ -1,6 +1,7 @@
 package fr.gameofarkadia.safecombat.util;
 
 import fr.gameofarkadia.safecombat.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ public final class Lang {
         YamlConfiguration defaultConfiguration;
 
         if(!customLangFile.exists()) {
-            Util.console("§cSpecified language file doesn't exist. EN language used by default.");
+            Main.getInstance().getSLF4JLogger().warn("Specified language file doesn't exist. EN language used by default.");
             langFile = new File(Main.getInstance().getDataFolder(), "lang/en.yml");
             defaultConfiguration = YamlConfiguration.loadConfiguration(new InputStreamReader(Main.getInstance().getResource("lang/en.yml"), StandardCharsets.UTF_8));
         } else {

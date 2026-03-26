@@ -1,8 +1,8 @@
 package fr.gameofarkadia.safecombat.command;
 
+import fr.gameofarkadia.arkadialib.api.ArkadiaLib;
 import fr.gameofarkadia.arkadialib.api.commands.PlayerArkadiaCommand;
 import fr.gameofarkadia.safecombat.Main;
-import fr.gameofarkadia.safecombat.listener.ConfirmDisableProtection;
 import fr.gameofarkadia.safecombat.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -43,10 +43,7 @@ public class ProtectionCommand extends PlayerArkadiaCommand {
                     player.sendMessage(Util.prefix() + Main.getLang().get("protection.not-protected"));
                     return false;
                 }
-                Bukkit.getPluginManager().registerEvents(new ConfirmDisableProtection(player), Main.getInstance());
-                player.sendMessage(Util.prefix() + Main.getLang().get("protection.cancellation-started")
-                        .replaceAll("%cancel-code%", Main.getLang().get("protection.cancellation-cancel-code"))
-                        .replaceAll("%code%", Main.getLang().get("protection.cancellation-code")));
+                sendDisableInput(player, true);
             }
             case "add" -> {
                 if(args.length < 4) {
@@ -131,5 +128,26 @@ public class ProtectionCommand extends PlayerArkadiaCommand {
         }
         Collections.sort(results);
         return results;
+    }
+
+    private void sendDisableInput(@NotNull Player player, boolean message) {
+        if(message) {
+            player.sendMessage(Util.prefix() + Main.getLang().get("protection.cancellation-started")
+                .replaceAll("%cancel-code%", Main.getLang().get("protection.cancellation-cancel-code"))
+                .replaceAll("%code%", Main.getLang().get("protection.cancellation-code")));
+        }
+
+        ArkadiaLib.getInputs().inputChat().setAction(input -> {
+                if(input.equals(Main.getLang().get("protection.cancellation-cancel-code"))) {
+                    player.sendMessage(Util.prefix() + Main.getLang().get("protection.cancelled"));
+                } else if (input.equals(Main.getLang().get("protection.cancellation-code"))) {
+                    Main.getCombatManager().removePlayerProtection(player);
+                    player.sendMessage(Util.prefix() + Main.getLang().get("protection.removed"));
+                } else {
+                    player.sendMessage(Util.prefix() + Main.getLang().get("protection.try-again"));
+                    sendDisableInput(player, false);
+                }
+            })
+            .open(player);
     }
 }

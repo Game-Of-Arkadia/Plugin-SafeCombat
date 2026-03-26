@@ -1,5 +1,6 @@
 package fr.gameofarkadia.safecombat.listener.task;
 
+import fr.gameofarkadia.arkadialib.api.utils.DurationWrapper;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
 import net.kyori.adventure.text.Component;
@@ -10,8 +11,11 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
-public class PlayerDisconnectedTask implements Runnable, Listener {
+import java.time.Duration;
+
+public class PlayerDisconnectedTask implements Runnable {
 
     private final int taskId;
     private final int particlesTasks;
@@ -19,22 +23,12 @@ public class PlayerDisconnectedTask implements Runnable, Listener {
     private final Location location;
     private final ItemStack[] items;
 
-    public PlayerDisconnectedTask(Player player, int durationSeconds) {
+    public PlayerDisconnectedTask(@NotNull Player player, @NotNull DurationWrapper duration) {
         this.player = player;
         location = player.getLocation().clone().add(0, 0.5, 0);
         items = player.getInventory().getContents();
-        taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), this, durationSeconds * 20L).getTaskId();
+        taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), this, duration.asTicks()).getTaskId();
         particlesTasks = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), this::spawnParticles, 0, 20).getTaskId();
-    }
-
-    /**
-     * Cancel the task if the player rejoins
-     * @param e The event
-     */
-    @EventHandler
-    public void onPlayerJoins(PlayerJoinEvent e) {
-        if(e.getPlayer().getUniqueId().equals(player.getUniqueId()))
-            cancel();
     }
 
     @Override
@@ -60,10 +54,9 @@ public class PlayerDisconnectedTask implements Runnable, Listener {
         location.getWorld().spawnParticle(Particle.DUST, location, 5, 0.15, 0.4, 0.15, new Particle.DustOptions(Color.RED, 2));
     }
 
-    private void cancel() {
+    public void cancel() {
         Bukkit.getScheduler().cancelTask(taskId);
         Bukkit.getScheduler().cancelTask(particlesTasks);
-        HandlerList.unregisterAll(this);
     }
 
 }

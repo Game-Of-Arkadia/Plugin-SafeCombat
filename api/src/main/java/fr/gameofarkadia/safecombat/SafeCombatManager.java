@@ -29,6 +29,22 @@ public interface SafeCombatManager {
   boolean isFighting(@NotNull UUID playerUUID);
 
   /**
+   * Check if a player should be killed.
+   * @param player The player.
+   * @return {@code true} if the player disconnected during a fight.
+   */
+  default boolean shouldBeKilled(@NotNull OfflinePlayer player) {
+    return shouldBeKilled(player.getUniqueId());
+  }
+
+  /**
+   * Check if a player should be killed.
+   * @param playerUUID The player UUID.
+   * @return {@code true} if the player disconnected during a fight.
+   */
+  boolean shouldBeKilled(@NotNull UUID playerUUID);
+
+  /**
    * Check if player is protected.
    * @param player The player.
    * @return {@code true} if the player cannot be attacked.

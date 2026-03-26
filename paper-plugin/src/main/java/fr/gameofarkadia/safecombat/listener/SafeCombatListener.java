@@ -1,10 +1,11 @@
 package fr.gameofarkadia.safecombat.listener;
 
-import fr.gameofarkadia.arkadialib.api.utils.DurationUtils;
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatScheduler;
+import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
+import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
 import fr.gameofarkadia.safecombat.events.PlayerStartsFightingEvent;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
-import fr.gameofarkadia.safecombat.listener.task.PlayerDisconnectedTask;
 import fr.gameofarkadia.safecombat.util.Config;
 import fr.gameofarkadia.safecombat.util.Util;
 import net.kyori.adventure.text.Component;
@@ -26,10 +27,12 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
-import java.util.List;
-
+/**
+ * General-purpose listener for all the main plugin features.
+ */
 public class SafeCombatListener implements Listener {
+
+    private final PvpConfiguration config = Main.config().getPvpConfiguration();
 
     /**
      * Make player and killer in PvP
@@ -55,51 +58,31 @@ public class SafeCombatListener implements Listener {
             return;
         }
 
+        // For each player, update state. Ignore players in creative !
         if(!damager.getGameMode().equals(GameMode.CREATIVE)) {
-            if(!Main.getCombatManager().isFighting(damager)) {
-                Main.getCombatManager().setPlayerFighting(damager);
+            if(Main.getCombatManager().playerIsFighting(damager)) {
                 Bukkit.getPluginManager().callEvent(new PlayerStartsFightingEvent(damager, PlayerStartsFightingEvent.Type.ATTACKER));
-            } else {
-                Main.getCombatManager().updateInstant(damager);
             }
         }
-
         if(!player.getGameMode().equals(GameMode.CREATIVE)) {
-            if(!Main.getCombatManager().isFighting(player)) {
-                Main.getCombatManager().setPlayerFighting(player);
+            if(Main.getCombatManager().playerIsFighting(player)) {
                 Bukkit.getPluginManager().callEvent(new PlayerStartsFightingEvent(player, PlayerStartsFightingEvent.Type.ATTACKED));
-            } else {
-                Main.getCombatManager().updateInstant(player);
             }
         }
     }
 
-    /**
-     * Remove died player from fight mode and add him to the list
-     * for respawn protection verification
-     * @param e The event
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     void onPlayerDeath(@NotNull PlayerDeathEvent e) {
-        Player player = e.getEntity();
-        Main.getCombatManager().removeFromFighting(player);
-        if(player.getKiller() == null) return;
-        Main.getDiedPlayers().add(e.getEntity().getUniqueId());
+        Main.getCombatManager().removeFromFighting(e.getPlayer());
     }
 
-    /**
-     * Prevent spawn kill by applying a protection
-     * @param e The event
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     void onPlayerRespawns(@NotNull PlayerRespawnEvent e) {
         if(!e.getRespawnReason().equals(PlayerRespawnEvent.RespawnReason.DEATH)) return;
-        Player player = e.getPlayer();
-        if(!Main.getDiedPlayers().contains(player.getUniqueId())) return;
-        Main.getDiedPlayers().remove(player.getUniqueId());
-        int respawnProtection = Config.getInt("pvp.respawn-protection");
-        if(respawnProtection > 0) {
-           Main.getCombatManager().addPlayerProtection(player, Duration.ofSeconds(respawnProtection));
+
+        // Respawn protection
+        if(config.hasRespawnProtection()) {
+           Main.getCombatManager().addPlayerProtection(e.getPlayer(), config.getRespawnDuration().duration());
         }
     }
 
@@ -110,27 +93,22 @@ public class SafeCombatListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     void onPlayerFightingQuit(@NotNull PlayerQuitEvent e) {
         Player player = e.getPlayer();
-        if(!Main.getCombatManager().isFighting(player)) return;
-        if(Main.getKickedPlayers().contains(player.getUniqueId())) return;
-        int duration = Config.getInt("pvp.disconnection");
-        if(duration < 0) {
-            Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")
-                .replace("%duration%", DurationUtils.formatDuration(Duration.ofSeconds(duration)))));
+        if(!Main.getCombatManager().isFighting(player) || e.getReason() == PlayerQuitEvent.QuitReason.KICKED) return;
 
+        // No punishment : we just stop here.
+        if(!config.hasDisconnectPunishment()) {
             if(Main.getCombatManager().removeFromFighting(player)) {
-                Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
+                SafeCombatScheduler.run(() -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
             }
-
-            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                for(ItemStack itemStack : player.getInventory().getContents()) {
-                    if(itemStack == null) continue;
-                    player.getWorld().dropItem(player.getLocation(), itemStack);
-                }
-            });
-        } else {
-            Main.getInstance().getSLF4JLogger().warn("Player {} shall be killed !", player.getName());
-            Bukkit.getPluginManager().registerEvents(new PlayerDisconnectedTask(player, duration), Main.getInstance());
+            return;
         }
+
+        // A punishment should be applied !
+        // But only after some duration.
+        var duration = config.getDurationBeforePunishment();
+        Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")
+            .replace("%duration%", duration.print())));
+        Main.getCombatManager().startPlayerDisconnectTask(player, duration);
     }
 
     /**
@@ -142,21 +120,37 @@ public class SafeCombatListener implements Listener {
         Player player = e.getPlayer();
 
         // Newbie / PvP protection
-        if(player.getLastPlayed() == 0) {
-            Main.getCombatManager().addPlayerProtection(player, Duration.ofHours(Config.getInt("pvp.newbie-protection")));
-        } else if (Main.getCombatManager().isProtected(player)) {
-            Main.getCombatManager().getProtectedPlayers().get(player.getUniqueId()).getBossBar().addPlayer(player);
-            player.sendMessage(Util.prefix() + Main.getLang().get("protection.join"));
-        }
+        Main.getCombatManager().isItFirstConnection(player).whenComplete((isFirst, err) -> {
+            if(err != null) {
+                Main.logger().error("Could not check if player {} is in first connection. No protection will be applied.", player.getName(), err);
+                return;
+            }
 
-        // Combat disconnection
-        Main.getInstance().getSLF4JLogger().info("Player {} has joined the server. Is in kill-list ? {}.", player.getName(), Main.getCombatManager().getPlayersToKill().contains(player.getUniqueId()));
-        if(Main.getCombatManager().getPlayersToKill().contains(player.getUniqueId())) {
+            // First login : add a newbie protection
+            if(isFirst) {
+                var newbieDuration = config.getNewbieProtectionDuration();
+                if(newbieDuration.asTicks() > 0) {
+                    Main.getCombatManager().addPlayerProtection(player, newbieDuration.asJavaDuration());
+                }
+                return;
+            }
+
+            // Not first connection. Are we protected ? If yeas, display boss-bar.
+            if (Main.getCombatManager().isProtected(player)) {
+                Main.getCombatManager().getProtectedTask(player).updatePlayer(player);
+                player.sendMessage(Util.prefix() + Main.getLang().get("protection.join"));
+            }
+        });
+
+        // Check for reconnect after disconnecting during fight
+        Main.logger().info("Player {} has joined the server. Is in kill-list ? {}.", player.getName(), Main.getCombatManager().shouldBeKilled(player));
+        if(Main.getCombatManager().shouldBeKilled(player)) {
             Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §e" + Main.getLang().get("fight.player-reconnected")));
-            Main.getCombatManager().removePlayerToKill(player);
 
             player.getInventory().clear();
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            HuskSyncHelper.clearInventory(player);
+
+            SafeCombatScheduler.runLater(() -> {
                 // Inventory has been dropped by disconnect-task. Now, we clear the inventory.
                 player.setHealth(0);
             }, 5L);
@@ -193,11 +187,11 @@ public class SafeCombatListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     void onEnderPearlThrown(@NotNull ProjectileLaunchEvent e) {
-        if(!Config.getBoolean("pvp.enderpearl.custom-cooldown")) return;
+        if(!config.isEnderpearlCooldownEnabled()) return;
         Projectile projectile = e.getEntity();
-        if(!(projectile instanceof EnderPearl enderPearl)) return;
-        if(!(enderPearl.getShooter() instanceof Player player)) return;
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.setCooldown(Material.ENDER_PEARL, Config.getInt("pvp.enderpearl.cooldown-time") * 20), 1);
+        if(!(projectile instanceof EnderPearl enderPearl) || !(enderPearl.getShooter() instanceof Player player)) return;
+
+        SafeCombatScheduler.run(() -> player.setCooldown(Material.ENDER_PEARL, (int) config.getEnderpearlCooldown().asTicks()));
     }
 
     /**
@@ -208,11 +202,12 @@ public class SafeCombatListener implements Listener {
     void onPlayerEntersCommand(@NotNull PlayerCommandPreprocessEvent e) {
         Player player = e.getPlayer();
         if(!Main.getCombatManager().isFighting(player)) return;
-        List<String> bannedCommands = Config.getStringList("banned-commands");
         String command = e.getMessage().replace("/", "");
-        if(!bannedCommands.contains(command)) return;
-        e.setCancelled(true);
-        player.sendMessage(Util.prefix() + Main.getLang().get("fight.command-banned"));
+
+        if(Main.config().isBanned(command)) {
+            e.setCancelled(true);
+            player.sendMessage(Util.prefix() + Main.getLang().get("fight.command-banned"));
+        }
     }
 
 }

@@ -17,7 +17,7 @@ import java.time.Instant;
 public class PlayerFightingTask implements Runnable {
 
     private final int taskId;
-    @Setter private Instant startingInstant;
+    private Instant startingInstant;
     private final Player player;
     private final BossBar bossBar;
 
@@ -48,6 +48,13 @@ public class PlayerFightingTask implements Runnable {
         bossBar.setVisible(false);
         Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
         player.sendMessage(Util.prefix() + Main.getLang().get("fight.finished"));
+    }
+
+    /**
+     * Refresh the fighting-state.
+     */
+    public void refresh() {
+        startingInstant = Instant.now();
     }
 
 }
