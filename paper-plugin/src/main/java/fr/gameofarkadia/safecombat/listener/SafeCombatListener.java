@@ -87,31 +87,6 @@ public class SafeCombatListener implements Listener {
     }
 
     /**
-     * Kill player if he's fighting
-     * @param e The event
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    void onPlayerFightingQuit(@NotNull PlayerQuitEvent e) {
-        Player player = e.getPlayer();
-        if(!Main.getCombatManager().isFighting(player) || e.getReason() == PlayerQuitEvent.QuitReason.KICKED) return;
-
-        // No punishment : we just stop here.
-        if(!config.hasDisconnectPunishment()) {
-            if(Main.getCombatManager().removeFromFighting(player)) {
-                SafeCombatScheduler.run(() -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
-            }
-            return;
-        }
-
-        // A punishment should be applied !
-        // But only after some duration.
-        var duration = config.getDurationBeforePunishment();
-        Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")
-            .replace("%duration%", duration.print())));
-        Main.getCombatManager().startPlayerDisconnectTask(player, duration);
-    }
-
-    /**
      * Called when a player joins after he is in the kill list
      * @param e The event
      */
@@ -155,15 +130,6 @@ public class SafeCombatListener implements Listener {
                 player.setHealth(0);
             }, 5L);
         }
-    }
-
-    /**
-     * Filter kicked players/server restart
-     * @param e The event
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    void onPlayerKicked(@NotNull PlayerKickEvent e) {
-        Main.getKickedPlayers().add(e.getPlayer().getUniqueId());
     }
 
     /**

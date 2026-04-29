@@ -1,17 +1,21 @@
 package fr.gameofarkadia.safecombat;
 
 import fr.gameofarkadia.arkadialib.api.ArkadiaLib;
-import fr.gameofarkadia.safecombat.bridge.WGBridge;
+import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
+import fr.gameofarkadia.safecombat.combat.CombatManager;
+import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
 import fr.gameofarkadia.safecombat.command.ProtectionCommand;
 import fr.gameofarkadia.safecombat.configuration.GeneralConfiguration;
 import fr.gameofarkadia.safecombat.listener.ForceFieldListener;
 import fr.gameofarkadia.safecombat.listener.SafeCombatListener;
-import fr.gameofarkadia.safecombat.storage.PlayerStatesManager;
-import fr.gameofarkadia.safecombat.sync.BungeeSynchronizer;
+import fr.gameofarkadia.safecombat.protection.ProtectionManager;
+import fr.gameofarkadia.safecombat.protection.ProtectionManagerImpl;
+import fr.gameofarkadia.safecombat.sync.IpcSynchronizer;
 import fr.gameofarkadia.safecombat.util.Lang;
 import fr.gameofarkadia.safecombat.util.Util;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayersManager;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayersManagerImpl;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -19,31 +23,32 @@ import org.slf4j.Logger;
 
 import java.util.*;
 
-@Slf4j
-public final class Main extends JavaPlugin {
+@Getter
+public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
     private static Main INSTANCE;
     @Getter private static Lang lang;
-    @Getter private static boolean isWGEnabled;
-
-    @Getter private static final Set<UUID> kickedPlayers = new HashSet<>();
-    @Getter private static final Set<UUID> diedPlayers = new HashSet<>();
 
     private GeneralConfiguration configuration;
-    private BungeeSynchronizer synchronizer;
-    private PlayerStatesManager manager;
+    private IpcSynchronizer synchronizer;
+
+    private ProtectionManager protectionManager;
+    private WantedPlayersManager wantedPlayersManager;
+    private CombatManager combatManager;
 
     @Override
     public void onLoad() {
         SafeCombatScheduler.setPlugin(this);
-        if (Bukkit.getPluginManager().isPluginEnabled("WorldGuard")) {
-            isWGEnabled = true;
-            WGBridge.load();
-        }
+
         configuration = new GeneralConfiguration(getDataFolder());
         configuration.reload();
-        synchronizer = new BungeeSynchronizer(this);
-        SafeCombatAPI.initialize(combatManager);
+
+        combatManager = new CombatManagerImpl();
+        wantedPlayersManager = new WantedPlayersManagerImpl();
+
+        synchronizer = new IpcSynchronizer();
+
+        SafeCombatAPI.initialize(this);
     }
 
     @Override
@@ -58,7 +63,7 @@ public final class Main extends JavaPlugin {
         Lang.setupFiles();
         lang = new Lang(configuration.getLanguage());
 
-        if(isWGEnabled && !configuration.getPvpConfiguration().isEnderpearlBypassForceField()) {
+        if(!configuration.getPvpConfiguration().isEnderpearlBypassForceField()) {
             Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
             Bukkit.getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
         }
@@ -72,16 +77,24 @@ public final class Main extends JavaPlugin {
                } else {
                  logger().info("Database migrated to version {}.", ver);
                }
+               SafeCombatScheduler.run(() -> {
+                   try {
+                       lateInit();
+                   } catch (Exception e) {
+                       logger().error("Could not finish lateInit.", e);
+                   }
+               });
             });
+
+    }
+
+    private void lateInit() {
+        // protection manager
+        protectionManager = new ProtectionManagerImpl(ArkadiaLib.getDatabaseManager());
 
         // Setup command, listeners and managers
         new ProtectionCommand();
         Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
-    }
-
-    @Override
-    public void onDisable() {
-        // database close
     }
 
     @Deprecated
@@ -109,12 +122,12 @@ public final class Main extends JavaPlugin {
      * Get the plugin synchronizer.
      * @return the synchronizer singleton.
      */
-    public static @NotNull BungeeSynchronizer synchronizer() {
+    public static @NotNull IpcSynchronizer synchronizer() {
         return INSTANCE.synchronizer;
     }
 
-    public static @NotNull PlayerStatesManager getCombatManager() {
-        return INSTANCE.manager;
+    @Override
+    public @NotNull String getServerId() {
+        return HuskSyncHelper.getServerId();
     }
-
 }

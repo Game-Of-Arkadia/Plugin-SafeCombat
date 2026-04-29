@@ -45,4 +45,12 @@ public final class HuskSyncHelper {
 
   }
 
+  /**
+   * Get the registered server ID.
+   * @return a non-null server ID.
+   */
+  public static @NotNull String getServerId() {
+    return HuskSyncAPI.getInstance().getPlugin().getServerName();
+  }
+
 }

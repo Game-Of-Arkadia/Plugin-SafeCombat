@@ -28,6 +28,8 @@
         <!-- Versions -->
         <worldguard.version>7.1.0-SNAPSHOT</worldguard.version>
         <husksync.version>3.8.7+1.21.8</husksync.version>
+        <pterodactyl-api.version>1.4-SNAPSHOT</pterodactyl-api.version>
+        <purse.version>1.2</purse.version>
     </properties>
 
     <repositories>
@@ -61,6 +63,20 @@
             <groupId>net.william278.husksync</groupId>
             <artifactId>husksync-bukkit</artifactId>
             <version>${husksync.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.game-of-arkadia.pterodactyl</groupId>
+            <artifactId>api</artifactId>
+            <version>${pterodactyl-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.game-of-arkadia</groupId>
+            <artifactId>purse</artifactId>
+            <version>${purse.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

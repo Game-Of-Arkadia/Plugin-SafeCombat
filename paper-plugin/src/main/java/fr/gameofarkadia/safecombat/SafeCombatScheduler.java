@@ -41,8 +41,8 @@ public final class SafeCombatScheduler {
      * @param runnable code to execute.
      * @param ticks duration, in ticks, to wait before execution.
      */
-    public static void runLaterAsync(@NotNull Runnable runnable, long ticks) {
-        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, ticks);
+    public static @NotNull BukkitTask runLaterAsync(@NotNull Runnable runnable, long ticks) {
+        return Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, ticks);
     }
 
     /**

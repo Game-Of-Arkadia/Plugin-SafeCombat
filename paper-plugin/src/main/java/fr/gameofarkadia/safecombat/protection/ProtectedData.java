@@ -1,4 +1,4 @@
-package fr.gameofarkadia.safecombat.storage;
+package fr.gameofarkadia.safecombat.protection;
 
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.Contract;

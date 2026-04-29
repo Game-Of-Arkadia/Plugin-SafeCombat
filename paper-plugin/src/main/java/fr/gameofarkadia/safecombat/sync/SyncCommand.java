@@ -8,7 +8,21 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public enum SyncEvent {
+public enum SyncCommand {
+
+  /**
+   * New wanted request. <br/>
+   * Params: {@code player_uuid, server_id, disconnect_ts}
+   */
+  WANTED_NEW(UUID.class, String.class, Long.class),
+
+  /**
+   * Clear the wanted status. <br/>
+   * Params: {@code player_uuid}
+   */
+  WANTED_CLEAR(UUID.class),
+
+
 
   /**
    * Player disconnected. <br/>
@@ -33,7 +47,7 @@ public enum SyncEvent {
 
   private final List<Class<?>> parameters;
 
-  SyncEvent(@NotNull Class<?> @NotNull ... parameters) {
+  SyncCommand(@NotNull Class<?> @NotNull ... parameters) {
     this.parameters = List.of(parameters);
   }
 

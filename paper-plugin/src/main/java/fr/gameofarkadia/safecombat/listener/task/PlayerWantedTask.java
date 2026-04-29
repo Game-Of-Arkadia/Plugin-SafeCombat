@@ -2,37 +2,47 @@ package fr.gameofarkadia.safecombat.listener.task;
 
 import fr.gameofarkadia.arkadialib.api.utils.DurationWrapper;
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-
-public class PlayerDisconnectedTask implements Runnable {
+/**
+ * Task that :
+ * 1. Try to find the wanted player.
+ */
+public class PlayerWantedTask {
 
     private final int taskId;
     private final int particlesTasks;
-    private final OfflinePlayer player;
-    private final Location location;
-    private final ItemStack[] items;
+    private final WantedPlayer data;
+    private final @Nullable Location location;
 
-    public PlayerDisconnectedTask(@NotNull Player player, @NotNull DurationWrapper duration) {
-        this.player = player;
-        location = player.getLocation().clone().add(0, 0.5, 0);
-        items = player.getInventory().getContents();
-        taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(Main.getInstance(), this, duration.asTicks()).getTaskId();
-        particlesTasks = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), this::spawnParticles, 0, 20).getTaskId();
+    public PlayerWantedTask(@NotNull WantedPlayer data) {
+        this.data = data;
+        this.location = null;
+
+        var duration = Main.config().getPvpConfiguration().getDurationBeforePunishment();
+        taskId = SafeCombatScheduler.runTimerAsync(this::tickDespawn, duration.asTicks()).getTaskId();
+        particlesTasks = -1;
     }
 
-    @Override
-    public void run() {
+    public PlayerWantedTask(@NotNull Player player) {
+        this.data = WantedPlayer.of(player.getUniqueId());
+        location = player.getLocation().clone().add(0, 0.5, 0);
+
+        var duration = Main.config().getPvpConfiguration().getDurationBeforePunishment();
+        taskId = SafeCombatScheduler.runTimerAsync(this::tickDespawn, duration.asTicks()).getTaskId();
+        particlesTasks = SafeCombatScheduler.runTimer(this::spawnParticles, 20).getTaskId();
+    }
+
+    private void tickDespawn() {
         Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected-punishment")));
         Main.getCombatManager().addPlayerToKill(player);
 
