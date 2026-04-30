@@ -4,10 +4,10 @@ import fr.gameofarkadia.arkadialib.api.ArkadiaLib;
 import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
 import fr.gameofarkadia.safecombat.combat.CombatManager;
 import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
+import fr.gameofarkadia.safecombat.command.AdminCommand;
 import fr.gameofarkadia.safecombat.command.ProtectionCommand;
 import fr.gameofarkadia.safecombat.configuration.GeneralConfiguration;
-import fr.gameofarkadia.safecombat.listener.ForceFieldListener;
-import fr.gameofarkadia.safecombat.listener.SafeZoneListener;
+import fr.gameofarkadia.safecombat.listener.*;
 import fr.gameofarkadia.safecombat.protection.ProtectionManager;
 import fr.gameofarkadia.safecombat.protection.ProtectionManagerImpl;
 import fr.gameofarkadia.safecombat.sync.IpcSynchronizer;
@@ -94,6 +94,10 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
     // Setup command, listeners and managers
     new ProtectionCommand();
+    new AdminCommand();
+    Bukkit.getPluginManager().registerEvents(new DisconnectCombatListener(), this);
+    Bukkit.getPluginManager().registerEvents(new FightListener(), this);
+    Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
     Bukkit.getPluginManager().registerEvents(new SafeZoneListener(), this);
   }
 
