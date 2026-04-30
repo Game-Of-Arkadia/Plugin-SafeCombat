@@ -4,7 +4,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
 import java.util.UUID;
 
 /**
@@ -30,10 +29,10 @@ public interface CombatManager {
 
   void setStartedFight(@NotNull Player player, boolean isAttacked);
 
-  default void clearFightStatus(@NotNull OfflinePlayer player) {
-    clearFightStatus(player.getUniqueId());
+  default void clearFightStatus(@NotNull OfflinePlayer player, @NotNull FightStopReason reason) {
+    clearFightStatus(player.getUniqueId(), reason);
   }
 
-  void clearFightStatus(@NotNull UUID player);
+  void clearFightStatus(@NotNull UUID player, @NotNull FightStopReason reason);
 
 }

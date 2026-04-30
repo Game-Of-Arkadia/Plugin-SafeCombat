@@ -1,12 +1,11 @@
 package fr.gameofarkadia.safecombat.listener.task;
 
 import com.google.common.base.Preconditions;
+import fr.gameofarkadia.arkadialib.api.utils.DurationUtils;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.protection.ProtectedData;
-import fr.gameofarkadia.safecombat.util.Util;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.boss.BarColor;
@@ -57,7 +56,7 @@ public class PlayerProtectedTask implements Runnable {
     // Check if over
     if (protection.isOver()) {
       SafeCombatAPI.getProtectionManager().removePlayerProtection(offlinePlayer);
-      ifOnline(p -> p.sendMessage(Util.prefix() + Main.getLang().get("protection.finished")));
+      ifOnline(p -> p.sendMessage(Main.prefix() + "&eVotre protection a pris fin. Vous pouvez désormais&c attaquer&e et&c être attaqué&e par d'autres joueurs."));
       cancel();
       return;
     }
@@ -66,8 +65,8 @@ public class PlayerProtectedTask implements Runnable {
 
     // Update boss-bar
     Duration duration = protection.duration();
-    getBossBar().setTitle(Main.getLang().get("protection.boss-bar")
-        .replaceAll("%duration%", DurationFormatUtils.formatDuration(duration.toMillis(), Main.getLang().get("protection.duration-format"), false)));
+    getBossBar().setTitle("&c&l⚔ &b&lProtection &7| &bReste &6%duration% &c&l⚔"
+        .replaceAll("%duration%", DurationUtils.formatDuration(duration)));
     getBossBar().setProgress((double) duration.toMillis() / totalDuration.toMillis());
   }
 

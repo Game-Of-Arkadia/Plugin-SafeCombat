@@ -2,9 +2,10 @@ package fr.gameofarkadia.safecombat.combat;
 
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.events.PlayerStartsFightingEvent;
+import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
 import fr.gameofarkadia.safecombat.listener.task.PlayerFightingTask;
-import fr.gameofarkadia.safecombat.util.Util;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,8 @@ public class CombatManagerImpl implements CombatManager {
 
     // Register + message
     localFightingPlayers.put(uuid, new PlayerFightingTask(player));
-    player.sendMessage(Util.prefix() + Main.getLang().get("fight.enter"));
+    player.sendMessage(Main.prefix() + "§cVous êtes entré en combat. Ne vous déconnectez pas !");
+    player.playSound(player, Sound.ENTITY_CREAKING_ACTIVATE, 1f, 0.85f);
 
     // Propagate event
     Bukkit.getPluginManager().callEvent(
@@ -43,10 +45,14 @@ public class CombatManagerImpl implements CombatManager {
   }
 
   @Override
-  public void clearFightStatus(@NotNull UUID uuid) {
+  public void clearFightStatus(@NotNull UUID uuid, @NotNull FightStopReason reason) {
     var task = localFightingPlayers.remove(uuid);
     if(task != null) {
       task.cancel(false);
+      Player player = Bukkit.getPlayer(uuid);
+      if(player != null) {
+        Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player, reason));
+      }
     }
   }
 }

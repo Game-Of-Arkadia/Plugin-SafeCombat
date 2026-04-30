@@ -1,6 +1,7 @@
 package fr.gameofarkadia.safecombat.wanted;
 
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +26,16 @@ public record WantedPlayer(
    */
   public boolean isLocal() {
     return Objects.equals(serverId, SafeCombatAPI.getServerId());
+  }
+
+  /**
+   * Create a new instance.
+   * @param player Player.
+   * @return a new instance of wanted data.
+   */
+  @Contract("_ -> new")
+  public static @NotNull WantedPlayer of(@NotNull OfflinePlayer player) {
+    return of(player.getUniqueId());
   }
 
   /**

@@ -1,7 +1,7 @@
 package fr.gameofarkadia.safecombat.sync;
 
-import fr.arkadia.highlands.Main;
 import fr.arkadia.pterodactyl.api.ipc.IpcNotification;
+import fr.gameofarkadia.safecombat.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 

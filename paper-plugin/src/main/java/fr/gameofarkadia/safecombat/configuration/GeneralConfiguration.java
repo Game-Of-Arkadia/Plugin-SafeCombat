@@ -2,6 +2,7 @@ package fr.gameofarkadia.safecombat.configuration;
 
 import fr.gameofarkadia.safecombat.Main;
 import lombok.Getter;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ import java.util.List;
 @Getter
 public class GeneralConfiguration extends ConfigHandler {
 
-  private String language;
+  private String prefix;
   private String databaseName;
 
   private final PvpConfiguration pvpConfiguration = new PvpConfiguration();
@@ -31,15 +32,16 @@ public class GeneralConfiguration extends ConfigHandler {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   protected void configReloaded(@NotNull YamlConfiguration config) {
     // Commons
-    language = config.getString("language", "en");
+    prefix = ChatColor.translateAlternateColorCodes('&', config.getString("prefix", "&b&l[&9SafeCombat&b&l]"));
     databaseName = config.getString("database.name", "plugin_safecombat");
 
     // PvP
     ConfigurationSection section = config.getConfigurationSection("pvp");
     if(section == null) {
-      Main.getInstance().getLogger().warning("Missing pvp section in config.yml");
+      Main.logger().warn("Missing 'pvp' section in config.yml");
       pvpConfiguration.reload(config);
     } else {
       pvpConfiguration.reload(section);

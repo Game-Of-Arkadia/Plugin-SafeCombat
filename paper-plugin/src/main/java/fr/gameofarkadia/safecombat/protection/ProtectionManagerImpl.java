@@ -4,6 +4,7 @@ import fr.gameofarkadia.arkadialib.api.database.DatabaseManager;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.listener.task.PlayerProtectedTask;
+import fr.gameofarkadia.safecombat.sync.SyncCommand;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -51,30 +52,54 @@ public class ProtectionManagerImpl implements ProtectionManager {
   }
 
   @Override
-  public void addPlayerProtection(@NotNull OfflinePlayer player, @NotNull Duration duration) {
+  public void addPlayerProtection(@NotNull OfflinePlayer player, @NotNull ProtectionReason reason, @NotNull Duration duration) {
     //TODO if protected, add duration.
     if(isProtected(player)) return;
 
     var data = ProtectedData.generate(player, duration);
     protections.put(player.getUniqueId(), data);
     localProtectionTasks.put(player.getUniqueId(), new PlayerProtectedTask(data));
-    SafeCombatScheduler.runAsync(() -> database.insert(data));
+
+    // We do not persist SERVER_JOIN
+    if(reason != ProtectionReason.SERVER_JOIN)
+      SafeCombatScheduler.runAsync(() -> database.insert(data));
   }
+
+
 
   @Override
   public boolean removePlayerProtection(@NotNull OfflinePlayer player) {
     var data = protections.remove(player.getUniqueId());
     if(data == null) return false;
+
     SafeCombatScheduler.runAsync(() -> database.delete(data));
     Optional.ofNullable(localProtectionTasks.remove(player.getUniqueId()))
         .ifPresent(PlayerProtectedTask::cancel);
+
+    // propagate
+    Main.synchronizer().sendRpc(SyncCommand.REMOVED_PROTECTION, player.getUniqueId());
+
     return true;
+  }
+
+  @Override
+  public @NotNull Duration getRemainingDuration(@NotNull UUID uuid) {
+    return Optional.ofNullable(protections.get(uuid))
+        .map(ProtectedData::duration)
+        .orElse(Duration.ZERO);
+  }
+
+  public void playerProtectionRemovedByRemote(@NotNull UUID uuid) {
+    Optional.ofNullable(localProtectionTasks.remove(uuid))
+        .ifPresent(PlayerProtectedTask::cancel);
+    protections.remove(uuid);
   }
 
   @Override
   public void signalPlayerJoined(@NotNull Player player) {
     var task = localProtectionTasks.get(player.getUniqueId());
     if(task != null) {
+      player.sendMessage(Main.prefix() + "&6Rappel : &eVous bénéficiez d'une protection. Vous ne pouvez&c ni attaquer, ni être attaqué&e. Pour y renoncer, faites la commande &c/protection disable&e.");
       task.updatePlayer(player);
     }
   }

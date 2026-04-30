@@ -1,7 +1,4 @@
-# Name of the file (without its extension) in "lang" directory,
-# that will be used for the messages translations.
-# You can create a custom file, with your language, inside the directory and use it there.
-language: en
+prefix: "&b&l[&9SafeCombat&b&l]"
 
 database:
   name: "plugin_safecombat"
@@ -17,6 +14,8 @@ pvp:
     newbie-protection: 48h
     # Respawn duration protection.
     respawn-protection: 30s
+    # Server join duration. This one is transient.
+    server-join-protection: 5s
 
     # Time, in seconds, to be considered to have leaved the fight after a disconnection.
     # If the player did not reconnect until then, he will be punished.
@@ -57,3 +56,5 @@ banned-commands:
   - "spawn"
   - "espawn"
   - "f home"
+  - "tp"
+  - "islet"

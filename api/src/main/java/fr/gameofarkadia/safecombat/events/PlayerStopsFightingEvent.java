@@ -1,5 +1,6 @@
 package fr.gameofarkadia.safecombat.events;
 
+import fr.gameofarkadia.safecombat.combat.FightStopReason;
 import lombok.Getter;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -16,13 +17,13 @@ public class PlayerStopsFightingEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final OfflinePlayer player;
-    private final Reason reason;
+    private final FightStopReason reason;
 
     /**
      * New instance.
      * @param player player to exit fight.
      */
-    public PlayerStopsFightingEvent(@NotNull OfflinePlayer player, @NotNull Reason reason) {
+    public PlayerStopsFightingEvent(@NotNull OfflinePlayer player, @NotNull FightStopReason reason) {
         this.player = player;
         this.reason = reason;
     }
@@ -38,14 +39,6 @@ public class PlayerStopsFightingEvent extends Event {
     @Override
     public @NotNull HandlerList getHandlers() {
         return HANDLERS;
-    }
-
-    public enum Reason {
-        AFTER_DURATION,
-
-        DISCONNECT,
-
-        OTHER,
     }
 
 }

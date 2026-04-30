@@ -1,6 +1,7 @@
 package fr.gameofarkadia.safecombat.wanted;
 
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.NoSuchElementException;
@@ -19,19 +20,28 @@ public interface WantedPlayersManager {
 
   @NotNull WantedPlayer getWanted(@NotNull OfflinePlayer player) throws NoSuchElementException;
 
-  void setLocalWanted(@NotNull WantedPlayer player);
+  /**
+   * A player disconnected while in combat (on this server).
+   * @param player player that disconnected.
+   */
+  void declareWanted(@NotNull Player player);
 
-  void setNetworkWanted(@NotNull WantedPlayer data);
+  /**
+   * Another server sent us a wanted-request on a player.
+   * @param data data of the wanted player.
+   */
+  void receivedRemoveWanted(@NotNull WantedPlayer data);
 
-  default void clearLocalWanted(@NotNull OfflinePlayer player) {
-    clearLocalWanted(player.getUniqueId());
-  }
+  /**
+   * The player reconnected locally, or punishment has been done.
+   * @param uuid UUID of the wanted player.
+   */
   void clearLocalWanted(@NotNull UUID uuid);
 
-  default void clearNetworkWanted(@NotNull OfflinePlayer player) {
-    clearNetworkWanted(player.getUniqueId());
-  }
-
-  void clearNetworkWanted(@NotNull UUID uuid);
+  /**
+   * Either the player has been found somewhere, either task should be removed.
+   * @param uuid UUID of the wanted player.
+   */
+  void clearRemoteWanted(@NotNull UUID uuid);
 
 }

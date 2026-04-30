@@ -1,16 +1,17 @@
 package fr.gameofarkadia.safecombat.listener.task;
 
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.SafeCombatScheduler;
-import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
-import fr.gameofarkadia.safecombat.wanted.WantedPlayer;
+import fr.gameofarkadia.safecombat.combat.FightStopReason;
+import fr.gameofarkadia.safecombat.wanted.PunishmentHelper;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 /**
  * The player was here, and disconnected in combat.<br/>
@@ -22,37 +23,39 @@ public class PlayerLocalWantedTask {
   private final BukkitTask taskPunish;
   private final BukkitTask taskParticles;
   private final OfflinePlayer player;
+  private final UUID uuid;
   private final Location location;
 
+  /**
+   * Create, register and start the task.
+   * @param player player to start the task for. It will only access to location and not mutate anything directly.
+   */
   public PlayerLocalWantedTask(@NotNull Player player) {
     this.player = player;
+    this.uuid = player.getUniqueId();
     location = player.getLocation().clone().add(0, 0.5, 0);
 
     var duration = Main.config().getPvpConfiguration().getDurationBeforePunishment();
-    taskPunish = SafeCombatScheduler.runLaterAsync(this::tickDespawn, duration.asTicks());
+    taskPunish = SafeCombatScheduler.runLaterAsync(this::applyPunishmentWhenNotReconnected, duration.asTicks());
     taskParticles = SafeCombatScheduler.runTimer(this::spawnParticles, 20);
   }
 
-  /// Cal
-  private void tickDespawn() {
-    Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected-punishment")));
-    Main.getCombatManager().addPlayerToKill(player);
-
-    if (Main.getCombatManager().removeFromFighting(player)) {
-      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player)));
-    }
-
-    Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-      Main.getInstance().getSLF4JLogger().warn("Player {} will drop inventory", player.getName());
-      for (ItemStack itemStack : items) {
-        if (itemStack == null) continue;
-        location.getWorld().dropItem(location, itemStack);
-      }
-    });
+  /// Called once after the punishment delay, if the player did not reconnect.
+  private void applyPunishmentWhenNotReconnected() {
     cancel();
+    Bukkit.broadcast(Component.text(Main.prefix() + "§7Le joueur §4" + player.getName() + "§7 ne s'est pas reconnecté à temps. Il a été puni."));
+
+    // Clear fight status
+    SafeCombatAPI.getCombatManager().clearFightStatus(player, FightStopReason.AFTER_DURATION);
+
+    // Punish
+    PunishmentHelper.applyPunishment(uuid, location);
+
+    // Clear status on manager
+    SafeCombatAPI.getWantedPlayersManager().clearLocalWanted(uuid);
   }
 
-  /// All every second
+  /// Called every second
   private void spawnParticles() {
     location.getWorld().spawnParticle(Particle.DUST, location, 5, 0.15, 0.4, 0.15, new Particle.DustOptions(Color.RED, 2));
   }

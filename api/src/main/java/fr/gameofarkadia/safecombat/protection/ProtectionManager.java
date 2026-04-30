@@ -2,6 +2,7 @@ package fr.gameofarkadia.safecombat.protection;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -33,7 +34,7 @@ public interface ProtectionManager {
    * @param player the player to protect.
    * @param duration the duration.
    */
-  void addPlayerProtection(@NotNull OfflinePlayer player, @NotNull Duration duration);
+  void addPlayerProtection(@NotNull OfflinePlayer player, @NotNull ProtectionReason reason, @NotNull Duration duration);
 
   /**
    * Cancel a protection.
@@ -42,8 +43,23 @@ public interface ProtectionManager {
    */
   boolean removePlayerProtection(@NotNull OfflinePlayer player);
 
+  default @NotNull Duration getRemainingDuration(@NotNull OfflinePlayer player) {
+    return getRemainingDuration(player.getUniqueId());
+  }
+
+  @NotNull Duration getRemainingDuration(@NotNull UUID uuid);
+
+  /**
+   * Only with remote.
+   * @param uuid UUID of the player.
+   */
+  @ApiStatus.Internal
+  void playerProtectionRemovedByRemote(@NotNull UUID uuid);
+
+  @ApiStatus.Internal
   void signalPlayerJoined(@NotNull Player player);
 
+  @ApiStatus.Internal
   void reloadFromDatabaseAsync();
 
 }

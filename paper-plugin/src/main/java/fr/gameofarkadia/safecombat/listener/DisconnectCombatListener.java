@@ -1,30 +1,17 @@
 package fr.gameofarkadia.safecombat.listener;
 
+import fr.gameofarkadia.arkadialib.api.utils.DurationUtils;
 import fr.gameofarkadia.safecombat.Main;
-import fr.gameofarkadia.safecombat.SafeCombatScheduler;
-import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.combat.FightStopReason;
 import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
-import fr.gameofarkadia.safecombat.events.PlayerStartsFightingEvent;
-import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
-import fr.gameofarkadia.safecombat.util.Config;
-import fr.gameofarkadia.safecombat.util.Util;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,7 +29,8 @@ public class DisconnectCombatListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR)
   void onPlayerFightingQuit(@NotNull PlayerQuitEvent e) {
     Player player = e.getPlayer();
-    if (!Main.getCombatManager().isFighting(player)) return;
+    if (!SafeCombatAPI.isFighting(player)) return;
+
     if(e.getReason() != PlayerQuitEvent.QuitReason.DISCONNECTED) {
       Main.logger().info("Player {} was kicked while fighting, ignoring disconnect punishment.", player.getName());
       return;
@@ -50,19 +38,15 @@ public class DisconnectCombatListener implements Listener {
 
     // No punishment : we just stop here.
     if (!config.hasDisconnectPunishment()) {
-      // Send an event if needed.
-      if (Main.getCombatManager().removeFromFighting(player)) {
-        Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player, PlayerStopsFightingEvent.Reason.DISCONNECT));
-      }
+      SafeCombatAPI.getCombatManager().clearFightStatus(player, FightStopReason.DISCONNECT);
       return;
     }
 
     // A punishment should be applied !
     // But only after some duration.
     var duration = config.getDurationBeforePunishment();
-    Bukkit.broadcast(Component.text("§6§l" + player.getName() + " §c" + Main.getLang().get("fight.player-disconnected")
-        .replace("%duration%", duration.print())));
-    Main.getCombatManager().startPlayerDisconnectTask(player, duration);
+    Bukkit.broadcast(Component.text(Main.prefix() + "§7Le joueur §4" + player.getName() + "§7 s'est déconnecté en combat. Il a §c" + DurationUtils.formatDuration(duration.duration()) + "§7 pour se reconnecter."));
+    SafeCombatAPI.getWantedPlayersManager().declareWanted(player);
   }
 
 }

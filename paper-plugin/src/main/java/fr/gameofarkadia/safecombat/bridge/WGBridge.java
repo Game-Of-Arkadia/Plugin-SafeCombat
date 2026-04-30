@@ -5,6 +5,7 @@ import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
@@ -12,6 +13,7 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -22,57 +24,58 @@ import java.util.*;
 
 public class WGBridge {
 
-    public static StateFlag ENTER_SAFE_ZONE_PVP;
+    @Getter private static StateFlag canEnterSafeZoneInCombat;
+
+    // Safe-zone = PVP disabled
 
     /**
      * Load the flat to WG.
      */
-    public static void load() {
-        // Register custom WG flag
+    public static void initialize() {
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
         try {
             StateFlag enterSafeZonePvPFlag = new StateFlag("enter-safe-zone-pvp", true);
             registry.register(enterSafeZonePvPFlag);
-            ENTER_SAFE_ZONE_PVP = enterSafeZonePvPFlag;
+            canEnterSafeZoneInCombat = enterSafeZonePvPFlag;
         } catch (FlagConflictException e) {
             Flag<?> existing = registry.get("enter-safe-zone-pvp");
             if (existing instanceof StateFlag) {
-                ENTER_SAFE_ZONE_PVP = (StateFlag) existing;
+                canEnterSafeZoneInCombat = (StateFlag) existing;
             }
         }
     }
 
-    /**
-     * Get if the region is a safezone with ENTER_SAFE_ZONE_PVP flag value
-     * @param player The player
-     * @param location The location
-     * @return True or false
-     */
-    public static boolean isSafeZoneAt(Player player, Location location) {
-        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-        return query.queryValue(BukkitAdapter.adapt(location), WorldGuardPlugin.inst().wrapPlayer(player), ENTER_SAFE_ZONE_PVP) == StateFlag.State.DENY;
-    }
-
-    /**
-     * Get all safe zones regions into a list of block
-     * @param player The player
-     * @param blocks The blocks
-     * @return A list of ProtectedRegion, corresponding to safe zones
-     */
-    public static Set<ProtectedRegion> getSafeZonesInBlocks(Player player, List<BlockVector2> blocks) {
-        Set<ProtectedRegion> safeZones = new HashSet<>();
-        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        RegionManager manager = container.get(BukkitAdapter.adapt(player.getWorld()));
-        if(manager == null) return safeZones;
-
-        for(Map.Entry<String, ProtectedRegion> regionEntry : manager.getRegions().entrySet()) {
-            ProtectedRegion region = regionEntry.getValue();
-            if(manager.getApplicableRegions(region).testState(WorldGuardPlugin.inst().wrapPlayer(player), WGBridge.ENTER_SAFE_ZONE_PVP)) continue;
-            if(region.containsAny(blocks)) safeZones.add(region);
-        }
-
-        return safeZones;
-    }
+//    /**
+//     * Get if the region is a safezone with ENTER_SAFE_ZONE_PVP flag value
+//     * @param player The player
+//     * @param location The location
+//     * @return True or false
+//     */
+//    public static boolean isSafeZoneAt(Player player, Location location) {
+//        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
+//        return query.queryValue(BukkitAdapter.adapt(location), WorldGuardPlugin.inst().wrapPlayer(player), Flags.PVP) == StateFlag.State.DENY;
+//    }
+//
+//    /**
+//     * Get all safe zones regions into a list of block
+//     * @param player The player
+//     * @param blocks The blocks
+//     * @return A list of ProtectedRegion, corresponding to safe zones
+//     */
+//    public static Set<ProtectedRegion> getSafeZonesInBlocks(Player player, List<BlockVector2> blocks) {
+//        Set<ProtectedRegion> safeZones = new HashSet<>();
+//        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+//        RegionManager manager = container.get(BukkitAdapter.adapt(player.getWorld()));
+//        if(manager == null) return safeZones;
+//
+//        for(Map.Entry<String, ProtectedRegion> regionEntry : manager.getRegions().entrySet()) {
+//            ProtectedRegion region = regionEntry.getValue();
+//            if(manager.getApplicableRegions(region).testState(WorldGuardPlugin.inst().wrapPlayer(player), WGBridge.ENTER_SAFE_ZONE_PVP)) continue;
+//            if(region.containsAny(blocks)) safeZones.add(region);
+//        }
+//
+//        return safeZones;
+//    }
 
     /**
      * Retrieve WorldGuard region edges blocks (2D) depending on a player

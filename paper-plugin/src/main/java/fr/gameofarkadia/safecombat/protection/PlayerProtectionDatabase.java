@@ -3,8 +3,6 @@ package fr.gameofarkadia.safecombat.protection;
 import fr.gameofarkadia.arkadialib.api.database.DatabaseConnection;
 import fr.gameofarkadia.arkadialib.api.database.DatabaseManager;
 import fr.gameofarkadia.safecombat.Main;
-import fr.gameofarkadia.safecombat.storage.ToKillData;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;

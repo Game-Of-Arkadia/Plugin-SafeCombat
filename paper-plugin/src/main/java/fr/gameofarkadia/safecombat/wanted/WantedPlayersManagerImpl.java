@@ -1,10 +1,11 @@
 package fr.gameofarkadia.safecombat.wanted;
 
-import com.google.common.base.Preconditions;
 import fr.gameofarkadia.safecombat.Main;
-import fr.gameofarkadia.safecombat.listener.task.PlayerWantedTask;
+import fr.gameofarkadia.safecombat.listener.task.PlayerLocalWantedTask;
+import fr.gameofarkadia.safecombat.listener.task.PlayerRemoteWantedTask;
 import fr.gameofarkadia.safecombat.sync.SyncCommand;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -15,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WantedPlayersManagerImpl implements WantedPlayersManager {
 
-  private final Map<UUID, PlayerWantedTask> localTasks = new ConcurrentHashMap<>();
+  private final Map<UUID, PlayerLocalWantedTask> localTasks = new ConcurrentHashMap<>();
+  private final Map<UUID, PlayerRemoteWantedTask> remoteTasks = new ConcurrentHashMap<>();
   private final Map<UUID, WantedPlayer> wantedPlayers = new ConcurrentHashMap<>();
 
   @Override
@@ -31,45 +33,58 @@ public class WantedPlayersManagerImpl implements WantedPlayersManager {
   // -- set
 
   @Override
-  public void setLocalWanted(@NotNull WantedPlayer data) {
-    if(isWanted(data.uuid())) {
-      Main.logger().warn("Received (local) {} but player is already wanted. Ignoring.", data);
+  public void declareWanted(@NotNull Player player) {
+    UUID uuid = player.getUniqueId();
+    if(isWanted(player.getUniqueId())) {
+      Main.logger().warn("Player {} has been declared has wanted... But already is !", player);
       return;
     }
 
-    wantedPlayers.put(data.uuid(), data);
-    localTasks.put(data.uuid(), new PlayerWantedTask(data));
+    WantedPlayer data = WantedPlayer.of(player);
+    wantedPlayers.put(uuid, data);
+    localTasks.put(uuid, new PlayerLocalWantedTask(player));
+
+    // Propagate to network
+    Main.synchronizer().sendRpc(SyncCommand.WANTED_NEW, data.uuid(), data.serverId(), data.timestamp());
   }
 
   @Override
-  public void setNetworkWanted(@NotNull WantedPlayer data) {
-    Preconditions.checkArgument(data.isLocal(), "Cannot propagate " + data + " as it's not from this server.");
+  public void receivedRemoveWanted(@NotNull WantedPlayer data) {
     if(isWanted(data.uuid())) {
-      Main.logger().warn("Received (network) {} but player is already wanted. Ignoring.", data);
+      Main.logger().warn("Received {} from network, but player is already wanted. Ignoring.", data);
       return;
     }
-    // Set local
-    setLocalWanted(data);
-    // Propagate over network
-    Main.synchronizer().sendRpc(SyncCommand.WANTED_NEW, data.uuid(), data.serverId(), data.timestamp());
+
+    // Start lookup task.
+    wantedPlayers.put(data.uuid(), data);
+    remoteTasks.put(data.uuid(), new PlayerRemoteWantedTask(data));
   }
 
   // -- clear
 
   @Override
   public void clearLocalWanted(@NotNull UUID uuid) {
-    wantedPlayers.clear();
-    var task = localTasks.remove(uuid);
-    if(task != null) {
-      task.cancel();
+    if(!isWanted(uuid)) {
+      Main.logger().warn("Player with UUID {} is not wanted, but clearLocalWanted was called. Ignoring.", uuid);
+      return;
     }
+
+    wantedPlayers.remove(uuid);
+    Optional.ofNullable(localTasks.remove(uuid)).ifPresent(PlayerLocalWantedTask::cancel);
+
+    // Drop request on network
+    Main.synchronizer().sendRpc(SyncCommand.WANTED_CLEAR, uuid);
   }
 
   @Override
-  public void clearNetworkWanted(@NotNull UUID uuid) {
-    clearLocalWanted(uuid);
-    // Propagate over network
-    Main.synchronizer().sendRpc(SyncCommand.WANTED_CLEAR, uuid);
+  public void clearRemoteWanted(@NotNull UUID uuid) {
+    if(!isWanted(uuid)) {
+      Main.logger().warn("Player with UUID {} is not wanted, but CLEAR request was called. Ignoring.", uuid);
+      return;
+    }
+
+    wantedPlayers.remove(uuid);
+    Optional.ofNullable(remoteTasks.remove(uuid)).ifPresent(PlayerRemoteWantedTask::cancel);
   }
 
 }

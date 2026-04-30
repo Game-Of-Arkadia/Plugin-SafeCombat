@@ -4,17 +4,30 @@ main: fr.gameofarkadia.safecombat.Main
 api-version: '1.21'
 description: '${project.description}'
 
-softdepend:
-  - WorldGuard
+depend:
+  - ArkadiaLib
   - HuskSync
+  - PterodactylApi
 
 commands:
   protection:
-    description: Manage player PvP protection.
-    aliases:
-      - pvp-protection
+    description: Allow player to disable their protection.
+    usage: /protection <status|disable>
+
+  safecombat-admin:
+    description: Admin command to manage players PvP protection status.
+    usage: /safecombat-admin <player> <status|disable>
+    permission: safecombat.command.admin
 
 permissions:
-  safecombat.protection:
+  # wildcard
+  safecombat.*:
+    description: Grants all permissions for SafeCombat.
+    default: op
+    children:
+      safecombat.command.admin: true
+
+  # admin command
+  safecombat.command.admin:
     description: Allows admins to manage players PvP protection status.
     default: op

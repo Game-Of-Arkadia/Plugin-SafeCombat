@@ -1,6 +1,5 @@
 package fr.gameofarkadia.safecombat.sync;
 
-import com.google.common.io.ByteArrayDataOutput;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,27 +21,12 @@ public enum SyncCommand {
    */
   WANTED_CLEAR(UUID.class),
 
-
-
   /**
-   * Player disconnected. <br/>
-   * Params: {@code player_uuid, server_id, disconnect_ts}
+   * Player is no longer protected.<br/>
+   * Params: {@code player_uuid}
    */
-  PLAYER_DISCONNECTED(UUID.class, String.class, Long.class),
+  REMOVED_PROTECTION(UUID.class),
 
-  PLAYER_RECONNECT_BEFORE_PUNISH(UUID.class, String.class),
-
-  /**
-   * Player punished.<br/>
-   * Params : {@code player_uuid}
-   */
-  PLAYER_RECONNECT_PUNISHED(UUID.class),
-
-  /**
-   * Protection-state changed on a player.<br/>
-   * Params : {@code player_uuid}
-   */
-  PLAYER_PROTECTION_REFRESH(UUID.class),
   ;
 
   private final List<Class<?>> parameters;
@@ -62,23 +46,6 @@ public enum SyncCommand {
     for(int i = 0; i < data.length; i++) {
       if(!parameters.get(i).isInstance(data[i])) {
         throw new IllegalArgumentException("Invalid data type for event " + this.name() + " at index " + i + ". Expected " + parameters.get(i).getSimpleName() + ", got " + data[i].getClass().getSimpleName());
-      }
-    }
-  }
-
-  /**
-   * Write data to an output buffer.
-   * @param out output buffer.
-   * @param data data to write.
-   */
-  void write(@NotNull ByteArrayDataOutput out, @NotNull Object @NotNull [] data) {
-    out.writeUTF(this.name());
-    for(Object o : data) {
-      switch (o) {
-        case UUID uuid -> out.writeUTF(uuid.toString());
-        case String s -> out.writeUTF(s);
-        case Long l -> out.writeLong(l);
-        default -> throw new IllegalArgumentException("Unsupported data type for event " + this + ": " + o.getClass().getSimpleName());
       }
     }
   }

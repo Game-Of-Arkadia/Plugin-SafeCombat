@@ -4,6 +4,8 @@ import fr.arkadia.pterodactyl.api.PterodactylAPI;
 import fr.arkadia.pterodactyl.api.ipc.IpcChannelListener;
 import fr.arkadia.pterodactyl.api.ipc.IpcNotification;
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -46,13 +48,28 @@ public class IpcSynchronizer implements IpcChannelListener {
     }
 
     switch (rpc.command()) {
-      case SyncCommand.PLAYER_DISCONNECTED -> {
+      case SyncCommand.WANTED_NEW -> {
         UUID playerUUID = rpc.get(0, UUID.class);
         String serverId = rpc.get(1, String.class);
         long disconnectTs = rpc.get(2, Long.class);
+        WantedPlayer data = new WantedPlayer(playerUUID, serverId, disconnectTs);
+        Main.logger().info("[<] Received WANTED_NEW: {}.", data);
 
-        Main.logger().info("Server {} sent a PLAYER_DISCONNECTED for {}. TS={}.", serverId, playerUUID, disconnectTs);
+        SafeCombatAPI.getWantedPlayersManager().receivedRemoveWanted(data);
       }
+
+      case WANTED_CLEAR -> {
+        UUID playerUUID = rpc.get(0, UUID.class);
+        Main.logger().info("[<] Received WANTED_CLEAR: {}.", playerUUID);
+        SafeCombatAPI.getWantedPlayersManager().clearRemoteWanted(playerUUID);
+      }
+
+      case REMOVED_PROTECTION -> {
+        UUID playerUUID = rpc.get(0, UUID.class);
+        Main.logger().info("[<] Received REMOVED_PROTECTION: {}.", playerUUID);
+        SafeCombatAPI.getProtectionManager().playerProtectionRemovedByRemote(playerUUID);
+      }
+
       default -> Main.logger().error("Received unknown sync command: '{}'.", rpc.command());
     }
   }
