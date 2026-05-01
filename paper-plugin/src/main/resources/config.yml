@@ -13,13 +13,21 @@ pvp:
     # First-connection duration protection.
     newbie-protection: 48h
     # Respawn duration protection.
-    respawn-protection: 30s
+    respawn-protection: 20s
     # Server join duration. This one is transient.
     server-join-protection: 5s
 
     # Time, in seconds, to be considered to have leaved the fight after a disconnection.
     # If the player did not reconnect until then, he will be punished.
-    allowed-disconnection: 10s
+    allowed-disconnection: 1m
+
+punishment:
+  lose-money: true
+  ban:
+    enabled: true
+    reason: "Déconnecté en combat."
+    duration: 1d
+    main-server: arkadia
 
 # Banned commands if the player is in pvp
 banned-commands:

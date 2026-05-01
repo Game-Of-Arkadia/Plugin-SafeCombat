@@ -22,6 +22,7 @@ public class GeneralConfiguration extends ConfigHandler {
 
   private final PvpConfiguration pvpConfiguration = new PvpConfiguration();
   private final List<String> bannedCommands = new ArrayList<>();
+  private final PunishmentConfiguration punishmentConfiguration = new PunishmentConfiguration();
 
   /**
    * New instance. Create file from default, if it does not exist.
@@ -39,12 +40,21 @@ public class GeneralConfiguration extends ConfigHandler {
     databaseName = config.getString("database.name", "plugin_safecombat");
 
     // PvP
-    ConfigurationSection section = config.getConfigurationSection("pvp");
-    if(section == null) {
+    ConfigurationSection pvpSection = config.getConfigurationSection("pvp");
+    if(pvpSection == null) {
       Main.logger().warn("Missing 'pvp' section in config.yml");
       pvpConfiguration.reload(config);
     } else {
-      pvpConfiguration.reload(section);
+      pvpConfiguration.reload(pvpSection);
+    }
+
+    // Punishment
+    ConfigurationSection punishSection = config.getConfigurationSection("punishment");
+    if(punishSection == null) {
+      Main.logger().warn("Missing 'punishment' section in config.yml");
+      punishmentConfiguration.reload(config);
+    } else {
+      punishmentConfiguration.reload(punishSection);
     }
 
     // Banned-commands

@@ -27,6 +27,11 @@ public enum SyncCommand {
    */
   REMOVED_PROTECTION(UUID.class),
 
+  /**
+   * Send the information to the main server.
+   * Params: {@code player_uuid, server_id}
+   */
+  BAN_PLAYER(UUID.class, String.class),
   ;
 
   private final List<Class<?>> parameters;

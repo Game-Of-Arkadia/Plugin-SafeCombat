@@ -6,9 +6,11 @@ import fr.arkadia.pterodactyl.api.ipc.IpcChannelListener;
 import fr.arkadia.pterodactyl.api.ipc.IpcNotification;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.wanted.PunishmentHelper;
 import fr.gameofarkadia.safecombat.wanted.WantedPlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -39,6 +41,8 @@ public class IpcSynchronizer implements IpcChannelListener {
     PterodactylAPI.getIpcPublisher()
         .getChannel(IPC_CHANNEL)
         .sendNotification(new CombatRpc(command, args));
+
+    Main.logger().info("[>] Propagated {} with {}.", command, Arrays.toString(args));
   }
 
   @Override
@@ -69,6 +73,13 @@ public class IpcSynchronizer implements IpcChannelListener {
         UUID playerUUID = rpc.get(0, UUID.class);
         Main.logger().info("[<] Received REMOVED_PROTECTION: {}.", playerUUID);
         SafeCombatAPI.getProtectionManager().playerProtectionRemovedByRemote(playerUUID);
+      }
+
+      case BAN_PLAYER -> {
+        UUID playerUUID = rpc.get(0, UUID.class);
+        String serverFrom = rpc.get(1, String.class);
+        Main.logger().info("[<] Received BAN_PLAYER: {} from {}.", playerUUID, serverFrom);
+        PunishmentHelper.notifyBanFromServer(playerUUID, serverFrom);
       }
 
       default -> Main.logger().error("Received unknown sync command: '{}'.", rpc.command());
