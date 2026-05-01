@@ -2,6 +2,7 @@ package fr.gameofarkadia.safecombat.combat;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -36,5 +37,8 @@ public interface CombatManager {
   }
 
   void clearFightStatus(@NotNull UUID player, @NotNull FightStopReason reason);
+
+  @ApiStatus.Internal
+  void signalPlayerReconnect(@NotNull Player player);
 
 }

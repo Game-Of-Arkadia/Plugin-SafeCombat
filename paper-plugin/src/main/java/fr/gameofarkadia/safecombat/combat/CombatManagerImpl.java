@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -62,5 +63,11 @@ public class CombatManagerImpl implements CombatManager {
         SafeCombatScheduler.event(new PlayerStopsFightingEvent(player, reason));
       }
     }
+  }
+
+  @Override
+  public void signalPlayerReconnect(@NotNull Player player) {
+    Optional.ofNullable(localFightingPlayers.get(player.getUniqueId()))
+        .ifPresent(task -> task.reconnect(player));
   }
 }
