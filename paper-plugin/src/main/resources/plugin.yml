@@ -8,6 +8,7 @@ depend:
   - ArkadiaLib
   - HuskSync
   - PterodactylAPI
+  - WorldGuardEvents
 
 commands:
   protection:

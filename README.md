@@ -1,67 +1,225 @@
-<img src="banner.png" alt="Safe Combat logo">
+# SafeCombat
 
-Avoiding **anti-gambling** in **PvP**  
+Plugin Minecraft Paper pour gérer le PvP de façon sécurisée :
+- statut de combat (combat-tag),
+- protection temporaire des joueurs,
+- gestion des déconnexions en combat (wanted/punition),
+- synchronisation inter-serveurs.
 
-> Languages available :
-> - **English** (default) 🇬🇧 🇺🇸
-> - **French** 🇫🇷
-> - **Custom** language into **custom file**
+Le dépôt contient deux modules Maven :
+- `api` (`safecombat-api`) : API Java pour les autres plugins.
+- `paper-plugin` (`safecombat`) : implémentation Paper.
 
-## Features
+## Prérequis
 
-> ⚔️ **Anti-logout**  
-> A player who **disconnects in combat** without **reconnecting after a certain time** will **be killed, and his stuff dropped to the ground**.
-> - Time remaining visible in an animated boss bar.
+- Java 21
+- Maven 3.9+
+- Serveur Paper `1.21.x`
+- Dépendances serveur (via `plugin.yml`) :
+  - `ArkadiaLib`
+  - `HuskSync`
+  - `PterodactylAPI`
 
-> 🔙 **Anti-safe zone back**  
-> Compatibility with **WorldGuard** thanks to a custom flag to prevent players in combat from entering into areas.  
-> - A client-only force field is generated to prevent the player from advancing. 
-> - Nor can he use ender pearls to teleport.  
-> 
-> See [**demonstration video**](https://www.youtube.com/watch?v=nF5s4Tff7Yk).
+## Build
 
-> 🛡️ **Protection**  
-> A protected player **cannot attack or be attacked**.
-> - Automatic protection for **new players on your server.**
-> - Custom protection for a player _(administrator command)_.
-> - Time remaining visible in an animated boss bar.
-> - A player **can refuse protection** with a command (irreversible).
+Depuis la racine du repository :
 
-## Commands
+```bash
+mvn clean package
+```
 
-- **/protection**
-    - **disable**  
-    Disable your protection
-    - **remove**  
-    Unprotect a player
-    - **add**  
-    Protect a player
+Artifacts générés :
+- API : `api/target/safecombat-api-2.0.jar`
+- Plugin Paper : `paper-plugin/target/safecombat-2.0.0-SNAPSHOT.jar`
 
-## Permissions
+## Installation (serveur Paper)
 
-- **safecombat.protection**  
-    Add and remove player's protection
+1. Copier `paper-plugin/target/safecombat-2.0.0-SNAPSHOT.jar` dans `plugins/`.
+2. Vérifier que `ArkadiaLib`, `HuskSync` et `PterodactylAPI` sont déjà installés.
+3. Démarrer le serveur une première fois pour générer/charger `plugins/SafeCombat/config.yml`.
+4. Ajuster la configuration puis redémarrer (ou recharger via commande admin).
 
-# API
+## Configuration
 
-_You can use JitPack.io to implement SafeCombat as a dependency in your project_  
-[![](https://jitpack.io/v/Game-Of-Arkadia/Plugin-SafeCombat.svg)](https://jitpack.io/#Game-Of-Arkadia/Plugin-SafeCombat)
+Fichier : `paper-plugin/src/main/resources/config.yml`
 
-### Events
-Events aren't cancellable yet.
-> **PlayerStartsFightingEvent**
-> - Called when the player enters in combat mode.
-> - Called twice : for the attacker and the attacked.
-> - Custom getters :
->   - **getPlayer()** Get the player concerned.
->   - **getType()** Get if the player is the attacker or the attacked.
+### Vue d'ensemble
 
-> **PlayerStopsFightingEvent**
-> - Called when the player leaves the combat mode.
-> - The player can be the attacker or the attacked.
-> - Custom getter :
->   - **getPlayer()** Get the player concerned.
+```yml
+prefix: "&b&l[&9SafeCombat&b&l]"
 
-# Soft dependencies (= optional)
+database:
+  name: "plugin_safecombat"
 
-- **WorldGuard**
+pvp:
+  durations:
+    fight: 30s
+    newbie-protection: 48h
+    respawn-protection: 20s
+    server-join-protection: 5s
+    allowed-disconnection: 1m
+
+punishment:
+  lose-money: true
+  ban:
+    enabled: true
+    reason: "Déconnecté en combat."
+    duration: 1d
+    main-server: arkadia
+
+banned-commands:
+  - "home"
+  - "spawn"
+  - "tp"
+```
+
+### Détails des clés
+
+- `prefix` : préfixe des messages plugin (codes couleurs `&` supportés).
+- `database.name` : nom de la base utilisée pour les données SafeCombat.
+- `pvp.durations.fight` : durée d'un état de combat.
+- `pvp.durations.newbie-protection` : protection des nouveaux joueurs.
+- `pvp.durations.respawn-protection` : protection après respawn.
+- `pvp.durations.server-join-protection` : protection temporaire à la connexion.
+- `pvp.durations.allowed-disconnection` : délai max hors-ligne avant punition d'une déco en combat.
+- `punishment.lose-money` : retire de l'argent lors de la punition si activé.
+- `punishment.ban.enabled` : active/désactive le ban automatique.
+- `punishment.ban.reason` : raison du ban appliqué.
+- `punishment.ban.duration` : durée du ban (ex : `1d`, `3h`, `30m`).
+- `punishment.ban.main-server` : serveur principal cible pour la sanction.
+- `banned-commands` : commandes bloquées tant que le joueur est en combat.
+
+## Commandes et permissions
+
+Source : `paper-plugin/src/main/resources/plugin.yml`
+
+### Commandes
+
+- `/protection <status|disable>`
+  - `status` : affiche le temps de protection restant.
+  - `disable` : désactive la protection (avec confirmation GUI).
+- `/safecombat-admin ...`
+  - gestion admin (rechargement config et gestion de protection).
+
+> Note : la syntaxe exacte de `/safecombat-admin` est déterminée par `paper-plugin/src/main/java/fr/gameofarkadia/safecombat/command/AdminCommand.java`.
+
+### Permissions
+
+- `safecombat.command.admin` : autorise la commande admin.
+- `safecombat.*` : wildcard (inclut `safecombat.command.admin`).
+
+## API (module `safecombat-api`)
+
+### Ajouter la dépendance Maven
+
+```xml
+<dependency>
+  <groupId>fr.game-of-arkadia</groupId>
+  <artifactId>safecombat-api</artifactId>
+  <version>2.0</version>
+  <scope>provided</scope>
+</dependency>
+```
+
+Le package est publié via GitHub Packages (`fr.game-of-arkadia`).
+
+### Point d'entrée
+
+Classe principale : `fr.gameofarkadia.safecombat.SafeCombatAPI`
+
+Méthodes utiles :
+- `SafeCombatAPI.isFighting(player/uuid)`
+- `SafeCombatAPI.isProtected(player/uuid)`
+- `SafeCombatAPI.isWanted(player/uuid)`
+- `SafeCombatAPI.getCombatManager()`
+- `SafeCombatAPI.getProtectionManager()`
+- `SafeCombatAPI.getWantedPlayersManager()`
+
+### Exemple 1 : Bloquer une action en combat
+
+```java
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import org.bukkit.entity.Player;
+
+public boolean canUseTeleport(Player player) {
+    return !SafeCombatAPI.isFighting(player);
+}
+```
+
+### Exemple 2 : Ajouter une protection temporaire
+
+```java
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.protection.ProtectionReason;
+import org.bukkit.entity.Player;
+
+import java.time.Duration;
+
+public void protectAfterEvent(Player player) {
+    SafeCombatAPI.getProtectionManager().addPlayerProtection(
+        player,
+        ProtectionReason.ADMINISTRATOR,
+        Duration.ofMinutes(15)
+    );
+}
+```
+
+### Exemple 3 : Lire le temps restant de protection
+
+```java
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import org.bukkit.entity.Player;
+
+import java.time.Duration;
+
+public String protectionStatus(Player player) {
+    if (!SafeCombatAPI.isProtected(player)) {
+        return "Le joueur n'est pas protégé.";
+    }
+
+    Duration remaining = SafeCombatAPI.getProtectionManager().getRemainingDuration(player);
+    return "Protection restante: " + remaining.getSeconds() + "s";
+}
+```
+
+### Exemple 4 : Écouter les événements de combat
+
+```java
+import fr.gameofarkadia.safecombat.events.PlayerStartsFightingEvent;
+import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+public final class CombatListener implements Listener {
+
+    @EventHandler
+    public void onFightStart(PlayerStartsFightingEvent event) {
+        event.getPlayer().sendMessage("Vous êtes maintenant en combat.");
+    }
+
+    @EventHandler
+    public void onFightStop(PlayerStopsFightingEvent event) {
+        event.getPlayer().getPlayer().sendMessage("Vous n'êtes plus en combat.");
+    }
+}
+```
+
+### Exemple 5 : Vérifier un joueur wanted
+
+```java
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import org.bukkit.OfflinePlayer;
+
+public boolean isPlayerWanted(OfflinePlayer player) {
+    return SafeCombatAPI.isWanted(player);
+}
+```
+
+## Structure du repository
+
+- `api/` : interfaces et événements exposés aux plugins tiers.
+- `paper-plugin/` : implémentation complète du plugin SafeCombat.
+
+## Licence
+
+Ce projet est distribué sous licence MIT. Voir `LICENSE`.
