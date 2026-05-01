@@ -9,6 +9,7 @@ depend:
   - HuskSync
   - PterodactylAPI
   - WorldGuardEvents
+  - PlaceholderAPI
 
 commands:
   protection:

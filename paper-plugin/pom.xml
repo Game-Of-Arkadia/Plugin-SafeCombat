@@ -31,6 +31,7 @@
         <pterodactyl-api.version>1.4-SNAPSHOT</pterodactyl-api.version>
         <purse.version>1.3</purse.version>
         <worldguard-events.version>1.18.1</worldguard-events.version>
+        <papi.version>2.11.6</papi.version>
     </properties>
 
     <repositories>
@@ -44,6 +45,11 @@
         <repository>
             <id>william278.net</id>
             <url>https://repo.william278.net/releases</url>
+        </repository>
+
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.helpch.at/releases</url>
         </repository>
     </repositories>
 
@@ -85,6 +91,14 @@
             <groupId>net.raidstone</groupId>
             <artifactId>WorldGuardEvents</artifactId>
             <version>${worldguard-events.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.placeholderapi/placeholderapi -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>${papi.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

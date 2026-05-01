@@ -2,6 +2,7 @@ package fr.gameofarkadia.safecombat;
 
 import fr.gameofarkadia.arkadialib.api.ArkadiaLib;
 import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
+import fr.gameofarkadia.safecombat.bridge.PlaceHolderExpansion;
 import fr.gameofarkadia.safecombat.bridge.WGBridge;
 import fr.gameofarkadia.safecombat.combat.CombatManager;
 import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
@@ -17,6 +18,7 @@ import fr.gameofarkadia.safecombat.util.PlayerTransfertHandler;
 import fr.gameofarkadia.safecombat.wanted.ToClearPlayersList;
 import fr.gameofarkadia.safecombat.wanted.WantedPlayersManager;
 import fr.gameofarkadia.safecombat.wanted.WantedPlayersManagerImpl;
+import io.papermc.paper.plugin.configuration.PluginMeta;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -86,6 +88,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
           });
         });
 
+    new PlaceHolderExpansion().register();
   }
 
   @Override
@@ -161,5 +164,9 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
   public static @Nullable InputStream fetchJarRessource(@NotNull String path) throws IOException {
     return INSTANCE.getResource(path);
+  }
+
+  public static @NotNull PluginMeta meta() {
+    return INSTANCE.getPluginMeta();
   }
 }
