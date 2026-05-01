@@ -68,6 +68,10 @@ public final class SafeCombatAPI {
     return instance.getWantedPlayersManager().isWanted(player);
   }
 
+  public static boolean isWantedLocally(@NotNull OfflinePlayer player) {
+    return instance.getWantedPlayersManager().isWantedLocally(player);
+  }
+
   public static boolean isWanted(@NotNull UUID playerUUID) {
     return instance.getWantedPlayersManager().isWanted(playerUUID);
   }

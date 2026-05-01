@@ -18,6 +18,12 @@ public interface WantedPlayersManager {
     return isWanted(player.getUniqueId());
   }
 
+  boolean isWantedLocally(@NotNull UUID player);
+
+  default boolean isWantedLocally(@NotNull OfflinePlayer player) {
+    return isWantedLocally(player.getUniqueId());
+  }
+
   @NotNull WantedPlayer getWanted(@NotNull OfflinePlayer player) throws NoSuchElementException;
 
   /**
@@ -43,5 +49,7 @@ public interface WantedPlayersManager {
    * @param uuid UUID of the wanted player.
    */
   void clearRemoteWanted(@NotNull UUID uuid);
+
+  void reconnected(@NotNull Player player);
 
 }

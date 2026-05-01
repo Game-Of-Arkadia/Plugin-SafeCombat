@@ -1,6 +1,7 @@
 package fr.gameofarkadia.safecombat.wanted;
 
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
 import lombok.NoArgsConstructor;
 import org.bukkit.Bukkit;
@@ -24,8 +25,10 @@ public final class PunishmentHelper {
         Main.logger().error("Failed to clear inventory of player {}.", uuid, err);
         return;
       }
-      Main.logger().info("Inventory of player {} cleared.", uuid);
-      result.forEach(itemStack -> location.getWorld().dropItem(location, itemStack));
+      SafeCombatScheduler.run(() -> {
+        Main.logger().info("Inventory of player {} cleared. Dropping content on groud ({}).", uuid, location);
+        result.forEach(itemStack -> location.getWorld().dropItem(location, itemStack));
+      });
     });
   }
 

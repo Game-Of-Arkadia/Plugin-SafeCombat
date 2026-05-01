@@ -3,6 +3,7 @@ package fr.gameofarkadia.safecombat;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,10 @@ public final class SafeCombatScheduler {
      */
     public static void run(@NotNull Runnable runnable) {
         Bukkit.getScheduler().runTask(plugin, runnable);
+    }
+
+    public static void event(@NotNull Event event) {
+        run(() -> Bukkit.getPluginManager().callEvent(event));
     }
 
     /**

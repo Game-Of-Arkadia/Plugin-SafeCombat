@@ -3,8 +3,8 @@ package fr.gameofarkadia.safecombat.bridge;
 import fr.gameofarkadia.safecombat.Main;
 import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.data.BukkitData;
-import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.User;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,14 +37,22 @@ public final class HuskSyncHelper {
   }
 
   /**
-   * Clear a player inventory.
+   * Clear a player inventory. Return the complete inventory content as Bukkit data.
    * @param player player to clear.
+   * @return a future with the inventory content as Bukkit data, or an empty list if no data to clear.
    */
   public static @NotNull CompletableFuture<List<ItemStack>> clearInventory(@NotNull OfflinePlayer player) {
-    Ref<User> userRef = new Ref<>();
+    // Connected ?
+    if(player.isOnline()) {
+      Player onlinePlayer = Bukkit.getPlayer(player.getUniqueId());
+      if(onlinePlayer != null) {
+        return CompletableFuture.completedFuture(connectedPlayerClear(onlinePlayer));
+      }
+    }
 
     // Get User from UUID
-    return HuskSyncAPI.getInstance().getUser(player.getUniqueId())
+    return Main.getToClearPlayersList().markAsClear(player.getUniqueId()).thenCompose(x ->
+       HuskSyncAPI.getInstance().getUser(player.getUniqueId())
         .thenApply(optionalUser -> {
               if (optionalUser.isEmpty()) {
                 LOG.warn("Internal player not found: {}.", player.getName());
@@ -56,45 +63,52 @@ public final class HuskSyncHelper {
 
         // Get data of user
         .thenCompose(user -> {
-          if(user == null) return CompletableFuture.completedFuture(Optional.empty());
-          userRef.object = user;
-          return HuskSyncAPI.getInstance().getCurrentData(user);
+          if(user == null) return CompletableFuture.completedFuture(List.of());
+          return disconnectedPlayerClear(user);
         })
-
-        // Transform data
-        .thenApply(optionalSnapshot -> {
-          if (optionalSnapshot.isEmpty()) {
-            LOG.warn("No data to remove for {}.", player.getName());
-            return List.of();
-          }
-
-          // Get the snapshot, which you can then do stuff with
-          DataSnapshot.Unpacked snapshot = optionalSnapshot.get();
-          List<ItemStack> output = new ArrayList<>();
-          if(snapshot.getInventory().isPresent()) {
-            var inventory = snapshot.getInventory().get();
-
-            // Save items
-            if(inventory instanceof BukkitData.Items.Inventory bukkitInventory) {
-              Arrays.stream(bukkitInventory.getContents()).forEach(itemStack -> {
-                if(itemStack != null)
-                  output.add(itemStack.clone());
-              });
-            } else {
-              Main.logger().error("Inventory is not a Bukkit inventory, cannot clear it. Type: '{}'.", inventory.getClass());
-            }
-
-            // Clear and persist.
-            inventory.clear();
-            HuskSyncAPI.getInstance().setCurrentData(userRef.object, snapshot);
-            HuskSyncAPI.getInstance().addSnapshot(userRef.object, snapshot);
-          }
-          return output;
-        });
+    );
   }
 
-  private static class Ref<T> {
-    T object;
+  private static @NotNull List<ItemStack> connectedPlayerClear(@NotNull Player player) {
+    List<ItemStack> output = new ArrayList<>();
+    Arrays.stream(player.getInventory().getContents()).forEach(item -> {
+      if (item != null) output.add(item.clone());
+    });
+
+    // On vide via Bukkit. HuskSync sauvegardera cet état vide à sa prochaine déconnexion.
+    player.getInventory().clear();
+    return output;
+  }
+
+  private static @NotNull CompletableFuture<List<ItemStack>> disconnectedPlayerClear(@NotNull User user) {
+    CompletableFuture<List<ItemStack>> future = new CompletableFuture<>();
+    HuskSyncAPI.getInstance().editCurrentData(user, editor -> {
+      // Get the inventory data
+      List<ItemStack> output = new ArrayList<>();
+      if (editor.getInventory().isEmpty()) {
+        future.complete(output);
+        return;
+      }
+      var inventory = editor.getInventory().get();
+
+      // Save items
+      if(inventory instanceof BukkitData.Items.Inventory bukkitInventory) {
+        Arrays.stream(bukkitInventory.getContents()).forEach(itemStack -> {
+          if(itemStack != null)
+            output.add(itemStack.clone());
+        });
+      } else {
+        future.completeExceptionally(new RuntimeException("Inventory is not a Bukkit inventory, cannot clear it. Type: '" + inventory.getClass() + "'."));
+        return;
+      }
+
+      // Clear vanilla inventory
+      inventory.clear();
+
+      // Complete promise
+      future.complete(output);
+    });
+    return future;
   }
 
   /**

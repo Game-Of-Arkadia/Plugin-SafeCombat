@@ -29,6 +29,8 @@ public interface CombatManager {
 
   void setStartedFight(@NotNull Player player, boolean isAttacked);
 
+  void refreshFight(@NotNull Player player);
+
   default void clearFightStatus(@NotNull OfflinePlayer player, @NotNull FightStopReason reason) {
     clearFightStatus(player.getUniqueId(), reason);
   }

@@ -13,6 +13,7 @@ import fr.gameofarkadia.safecombat.protection.ProtectionManager;
 import fr.gameofarkadia.safecombat.protection.ProtectionManagerImpl;
 import fr.gameofarkadia.safecombat.sync.IpcSynchronizer;
 import fr.gameofarkadia.safecombat.util.PlayerTransfertHandler;
+import fr.gameofarkadia.safecombat.wanted.ToClearPlayersList;
 import fr.gameofarkadia.safecombat.wanted.WantedPlayersManager;
 import fr.gameofarkadia.safecombat.wanted.WantedPlayersManagerImpl;
 import lombok.Getter;
@@ -33,6 +34,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
   private GeneralConfiguration configuration;
   private final IpcSynchronizer synchronizer = new IpcSynchronizer();;
   private PlayerTransfertHandler playerTransfertHandler;
+  @Getter private static final ToClearPlayersList toClearPlayersList = new ToClearPlayersList();
 
   private ProtectionManager protectionManager;
   private WantedPlayersManager wantedPlayersManager;
@@ -96,6 +98,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
   private void lateInit() {
     firstPlayerConnectionHandler.lateInit();
+    toClearPlayersList.lateInit();
 
     // protection manager
     protectionManager = new ProtectionManagerImpl(ArkadiaLib.getDatabaseManager());

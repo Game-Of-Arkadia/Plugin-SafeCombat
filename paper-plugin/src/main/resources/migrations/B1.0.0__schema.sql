@@ -12,3 +12,10 @@ CREATE TABLE `%DATABASE%`.`seen_players` (
     `player_name` VARCHAR(63) NOT NULL,
     `first_seen_time` DATETIME NOT NULL DEFAULT NOW()
 );
+
+-- to clear list
+CREATE TABLE `%DATABASE%`.`to_clear_players` (
+    `player_uuid` VARCHAR(36) PRIMARY KEY NOT NULL,
+    `server_id` VARCHAR(127) NOT NULL,
+    `timestamp` DATETIME NOT NULL DEFAULT NOW()
+);

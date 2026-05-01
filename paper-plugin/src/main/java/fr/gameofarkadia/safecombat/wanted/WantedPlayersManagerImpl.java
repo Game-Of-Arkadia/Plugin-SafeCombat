@@ -1,9 +1,12 @@
 package fr.gameofarkadia.safecombat.wanted;
 
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.listener.task.PlayerLocalWantedTask;
 import fr.gameofarkadia.safecombat.listener.task.PlayerRemoteWantedTask;
 import fr.gameofarkadia.safecombat.sync.SyncCommand;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +26,11 @@ public class WantedPlayersManagerImpl implements WantedPlayersManager {
   @Override
   public boolean isWanted(@NotNull UUID uuid) {
     return wantedPlayers.containsKey(uuid);
+  }
+
+  @Override
+  public boolean isWantedLocally(@NotNull UUID player) {
+    return localTasks.containsKey(player);
   }
 
   @Override
@@ -85,6 +93,13 @@ public class WantedPlayersManagerImpl implements WantedPlayersManager {
 
     wantedPlayers.remove(uuid);
     Optional.ofNullable(remoteTasks.remove(uuid)).ifPresent(PlayerRemoteWantedTask::cancel);
+  }
+
+  @Override
+  public void reconnected(@NotNull Player player) {
+    clearLocalWanted(player.getUniqueId());
+    Bukkit.broadcast(Component.text(Main.prefix() + "§7Le joueur §e" + player.getName() + "§7 s'est reconnecté à temps."));
+    SafeCombatAPI.getCombatManager().refreshFight(player);
   }
 
 }

@@ -22,8 +22,8 @@ public class PlayerLocalWantedTask {
 
   private final BukkitTask taskPunish;
   private final BukkitTask taskParticles;
-  private final OfflinePlayer player;
-  private final UUID uuid;
+  private final UUID playerUUID;
+  private final String playerName;
   private final Location location;
 
   /**
@@ -31,33 +31,35 @@ public class PlayerLocalWantedTask {
    * @param player player to start the task for. It will only access to location and not mutate anything directly.
    */
   public PlayerLocalWantedTask(@NotNull Player player) {
-    this.player = player;
-    this.uuid = player.getUniqueId();
-    location = player.getLocation().clone().add(0, 0.5, 0);
+    this.playerUUID = player.getUniqueId();
+    this.playerName = player.getName();
+    location = player.getLocation().clone().add(0, 0.6, 0);
 
     var duration = Main.config().getPvpConfiguration().getDurationBeforePunishment();
     taskPunish = SafeCombatScheduler.runLaterAsync(this::applyPunishmentWhenNotReconnected, duration.asTicks());
-    taskParticles = SafeCombatScheduler.runTimer(this::spawnParticles, 20);
+    taskParticles = SafeCombatScheduler.runTimer(this::spawnParticles, 10);
   }
 
   /// Called once after the punishment delay, if the player did not reconnect.
   private void applyPunishmentWhenNotReconnected() {
+    Main.logger().warn("Player {} did not reconnect in time. Will be punished.", playerName);
     cancel();
-    Bukkit.broadcast(Component.text(Main.prefix() + "§7Le joueur §4" + player.getName() + "§7 ne s'est pas reconnecté à temps. Il a été puni."));
+    Bukkit.broadcast(Component.text(Main.prefix() + "§7Le joueur §4" + playerName + "§7 ne s'est pas reconnecté à temps. Il a été puni."));
 
     // Clear fight status
-    SafeCombatAPI.getCombatManager().clearFightStatus(player, FightStopReason.AFTER_DURATION);
+    SafeCombatAPI.getCombatManager().clearFightStatus(playerUUID, FightStopReason.AFTER_DURATION);
 
     // Punish
-    PunishmentHelper.applyPunishment(uuid, location);
+    PunishmentHelper.applyPunishment(playerUUID, location);
 
     // Clear status on manager
-    SafeCombatAPI.getWantedPlayersManager().clearLocalWanted(uuid);
+    SafeCombatAPI.getWantedPlayersManager().clearLocalWanted(playerUUID);
   }
 
   /// Called every second
   private void spawnParticles() {
-    location.getWorld().spawnParticle(Particle.DUST, location, 5, 0.15, 0.4, 0.15, new Particle.DustOptions(Color.RED, 2));
+    location.getWorld()
+        .spawnParticle(Particle.DUST, location, 10, 0.2, 0.5, 0.2, new Particle.DustOptions(Color.RED, 2));
   }
 
   /**

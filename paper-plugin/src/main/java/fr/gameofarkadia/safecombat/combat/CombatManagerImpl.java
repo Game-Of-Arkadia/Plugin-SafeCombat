@@ -1,6 +1,7 @@
 package fr.gameofarkadia.safecombat.combat;
 
 import fr.gameofarkadia.safecombat.Main;
+import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.events.PlayerStartsFightingEvent;
 import fr.gameofarkadia.safecombat.events.PlayerStopsFightingEvent;
 import fr.gameofarkadia.safecombat.listener.task.PlayerFightingTask;
@@ -39,19 +40,26 @@ public class CombatManagerImpl implements CombatManager {
     player.playSound(player, Sound.ENTITY_CREAKING_ACTIVATE, 1f, 0.85f);
 
     // Propagate event
-    Bukkit.getPluginManager().callEvent(
+    SafeCombatScheduler.event(
         new PlayerStartsFightingEvent(player, isAttacked ? PlayerStartsFightingEvent.Type.ATTACKED : PlayerStartsFightingEvent.Type.ATTACKER)
     );
   }
 
   @Override
+  public void refreshFight(@NotNull Player player) {
+    var task = localFightingPlayers.get(player.getUniqueId());
+    if(task != null) task.refresh();
+  }
+
+  @Override
   public void clearFightStatus(@NotNull UUID uuid, @NotNull FightStopReason reason) {
+    Main.logger().warn("[DEBUG] Clearing fight status of player {} for reason {}", uuid, reason);
     var task = localFightingPlayers.remove(uuid);
     if(task != null) {
       task.cancel(false);
       Player player = Bukkit.getPlayer(uuid);
       if(player != null) {
-        Bukkit.getPluginManager().callEvent(new PlayerStopsFightingEvent(player, reason));
+        SafeCombatScheduler.event(new PlayerStopsFightingEvent(player, reason));
       }
     }
   }
