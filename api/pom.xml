@@ -9,7 +9,6 @@
 
     <name>SafeCombat API</name>
     <description>Avoiding anti-gambling in PvP</description>
-    <version>2.1.0</version>
     <parent>
         <groupId>fr.game-of-arkadia</groupId>
         <artifactId>safecombat-parent</artifactId>
