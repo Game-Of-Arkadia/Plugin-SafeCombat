@@ -56,7 +56,7 @@ public class PlayerProtectedTask implements Runnable {
     // Check if over
     if (protection.isOver()) {
       SafeCombatAPI.getProtectionManager().removePlayerProtection(offlinePlayer);
-      ifOnline(p -> p.sendMessage(Main.prefix() + "&eVotre protection a pris fin. Vous pouvez désormais&c attaquer&e et&c être attaqué&e par d'autres joueurs."));
+      ifOnline(p -> p.sendMessage(Main.prefix() + "§eVotre protection a pris fin. Vous pouvez désormais§c attaquer§e et§c être attaqué§e par d'autres joueurs."));
       cancel();
       return;
     }
@@ -65,8 +65,8 @@ public class PlayerProtectedTask implements Runnable {
 
     // Update boss-bar
     Duration duration = protection.duration();
-    getBossBar().setTitle("&c&l⚔ &b&lProtection &7| &bReste &6%duration% &c&l⚔"
-        .replaceAll("%duration%", DurationUtils.formatDuration(duration)));
+    getBossBar().setTitle("§c§l⚔ §b§lProtection §7|§b Reste §6{duration} §c§l⚔"
+        .replace("{duration}", DurationUtils.formatDuration(duration)));
     getBossBar().setProgress((double) duration.toMillis() / totalDuration.toMillis());
   }
 

@@ -32,7 +32,7 @@ public class PlayerFightingTask implements Runnable {
         startingInstant = Instant.now();
         totalDuration = Main.config().getPvpConfiguration().getFightDuration().asJavaDuration();
 
-        bossBar = Bukkit.createBossBar("&4&l⚔ COMBAT", BarColor.RED, BarStyle.SEGMENTED_10);
+        bossBar = Bukkit.createBossBar("§4§l⚔ COMBAT", BarColor.RED, BarStyle.SEGMENTED_10);
         bossBar.addPlayer(player);
         bossBar.setVisible(true);
 
@@ -46,7 +46,7 @@ public class PlayerFightingTask implements Runnable {
         if(remaining.isNegative() || remaining.isZero()) {
             cancel(true);
         } else {
-            String title = "&4&l⚔ COMBAT &8|&c&l {duration}&c restante".replace("{duration}", DurationUtils.formatDuration(remaining));
+            String title = "§4§l⚔ COMBAT §8|§c§l {duration}§c restantes".replace("{duration}", DurationUtils.formatDuration(remaining));
             bossBar.setTitle(title);
             bossBar.setProgress((double) remaining.toMillis() / totalDuration.toMillis());
         }
