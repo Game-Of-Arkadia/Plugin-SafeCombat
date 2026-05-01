@@ -4,6 +4,7 @@ import fr.gameofarkadia.arkadialib.api.database.DatabaseConnection;
 import fr.gameofarkadia.arkadialib.api.database.DatabaseManager;
 import fr.gameofarkadia.safecombat.Main;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,21 @@ public class PlayerProtectionDatabase {
         output.add(data);
       }
       return output;
+    } catch (SQLException e) {
+      throw new RuntimeException("Could not list protections.", e);
+    }
+  }
+
+  @Nullable ProtectedData getProtectionEntry(@NotNull UUID uuid) {
+    String sql = "SELECT * FROM " + dbName() + ".protected_players WHERE uuid = ?;";
+    try(var conn = database.getConnection(); var statement = conn.prepareStatement(sql)) {
+      statement.setString(1, uuid.toString());
+
+      ResultSet result = statement.executeQuery();
+      if(result.next()) {
+        return deserializeProtectedData(result);
+      }
+      return null;
     } catch (SQLException e) {
       throw new RuntimeException("Could not list protections.", e);
     }

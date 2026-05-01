@@ -45,6 +45,6 @@ public record ProtectedData(
    * @return true if "finish" date-time is after "now".
    */
   public boolean isOver() {
-    return protectionFinish.isAfter(LocalDateTime.now());
+    return LocalDateTime.now().isAfter(protectionFinish);
   }
 }

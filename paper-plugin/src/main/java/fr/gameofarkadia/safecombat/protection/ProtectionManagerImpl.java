@@ -23,27 +23,6 @@ public class ProtectionManagerImpl implements ProtectionManager {
 
   public ProtectionManagerImpl(@NotNull DatabaseManager manager) {
     database = new PlayerProtectionDatabase(manager);
-    initialLoad();
-  }
-
-  private void initialLoad() {
-    SafeCombatScheduler.execAsync(() -> {
-      database.getProtectionEntries().forEach(data -> {
-        protections.put(data.player(), data);
-        localProtectionTasks.put(data.player(), new PlayerProtectedTask(data));
-      });
-    }).exceptionally(err -> {
-      Main.logger().error("Could not load player protections from database.", err);
-      return null;
-    });
-  }
-
-  @Override
-  public void reloadFromDatabaseAsync() {
-    protections.clear();
-    localProtectionTasks.values().forEach(PlayerProtectedTask::cancel);
-    localProtectionTasks.clear();
-    initialLoad();
   }
 
   @Override
@@ -59,13 +38,12 @@ public class ProtectionManagerImpl implements ProtectionManager {
     var data = ProtectedData.generate(player, duration);
     protections.put(player.getUniqueId(), data);
     localProtectionTasks.put(player.getUniqueId(), new PlayerProtectedTask(data));
+    Main.logger().info("Adding player protection: {}.", data);
 
     // We do not persist SERVER_JOIN
     if(reason != ProtectionReason.SERVER_JOIN)
       SafeCombatScheduler.runAsync(() -> database.insert(data));
   }
-
-
 
   @Override
   public boolean removePlayerProtection(@NotNull OfflinePlayer player) {
@@ -89,6 +67,7 @@ public class ProtectionManagerImpl implements ProtectionManager {
         .orElse(Duration.ZERO);
   }
 
+  @Override
   public void playerProtectionRemovedByRemote(@NotNull UUID uuid) {
     Optional.ofNullable(localProtectionTasks.remove(uuid))
         .ifPresent(PlayerProtectedTask::cancel);
@@ -97,10 +76,28 @@ public class ProtectionManagerImpl implements ProtectionManager {
 
   @Override
   public void signalPlayerJoined(@NotNull Player player) {
-    var task = localProtectionTasks.get(player.getUniqueId());
+    SafeCombatScheduler.execAsync(() -> {
+      UUID uuid = player.getUniqueId();
+      var data = database.getProtectionEntry(uuid);
+      if(data == null) return;
+
+      // Register and start local task.
+      protections.put(uuid, data);
+      var task = localProtectionTasks.get(uuid);
+      if(task != null) {
+        player.sendMessage(Main.prefix() + "§6Rappel : §eVous bénéficiez d'une protection. Vous ne pouvez§c ni attaquer, ni être attaqué&§e. Pour y renoncer, faites la commande §c/protection disable§e.");
+        task.updatePlayer(player);
+      }
+    });
+  }
+
+  @Override
+  public void signalPlayerLeft(@NotNull Player player) {
+    UUID uuid = player.getUniqueId();
+    protections.remove(uuid);
+    var task = localProtectionTasks.remove(uuid);
     if(task != null) {
-      player.sendMessage(Main.prefix() + "§6Rappel : §eVous bénéficiez d'une protection. Vous ne pouvez§c ni attaquer, ni être attaqué&§e. Pour y renoncer, faites la commande §c/protection disable§e.");
-      task.updatePlayer(player);
+      task.cancel();
     }
   }
 }

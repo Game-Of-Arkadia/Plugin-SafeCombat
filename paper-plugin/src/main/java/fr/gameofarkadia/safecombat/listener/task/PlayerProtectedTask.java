@@ -95,8 +95,10 @@ public class PlayerProtectedTask implements Runnable {
    */
   public void cancel() {
     Bukkit.getScheduler().cancelTask(taskId);
-    bossBar.removeAll();
-    bossBar.setVisible(false);
+    if(bossBar != null) {
+      bossBar.removeAll();
+      bossBar.setVisible(false);
+    }
   }
 
 }

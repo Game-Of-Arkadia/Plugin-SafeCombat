@@ -35,7 +35,7 @@ public class GeneralConfiguration extends ConfigHandler {
   @SuppressWarnings("deprecation")
   protected void configReloaded(@NotNull YamlConfiguration config) {
     // Commons
-    prefix = ChatColor.translateAlternateColorCodes('&', config.getString("prefix", "&b&l[&9SafeCombat&b&l]"));
+    prefix = ChatColor.translateAlternateColorCodes('&', config.getString("prefix", "&b&l[&9SafeCombat&b&l]")) + " ";
     databaseName = config.getString("database.name", "plugin_safecombat");
 
     // PvP

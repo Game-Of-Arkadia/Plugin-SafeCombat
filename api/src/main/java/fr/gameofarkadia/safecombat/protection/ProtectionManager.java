@@ -60,6 +60,6 @@ public interface ProtectionManager {
   void signalPlayerJoined(@NotNull Player player);
 
   @ApiStatus.Internal
-  void reloadFromDatabaseAsync();
+  void signalPlayerLeft(@NotNull Player player);
 
 }
