@@ -1,72 +1,165 @@
 package fr.gameofarkadia.safecombat;
 
+import fr.gameofarkadia.arkadialib.api.ArkadiaLib;
+import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
 import fr.gameofarkadia.safecombat.bridge.WGBridge;
+import fr.gameofarkadia.safecombat.combat.CombatManager;
+import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
+import fr.gameofarkadia.safecombat.command.AdminCommand;
 import fr.gameofarkadia.safecombat.command.ProtectionCommand;
-import fr.gameofarkadia.safecombat.listener.ForceFieldListener;
-import fr.gameofarkadia.safecombat.listener.SafeCombatListener;
-import fr.gameofarkadia.safecombat.util.Config;
-import fr.gameofarkadia.safecombat.util.Lang;
-import fr.gameofarkadia.safecombat.util.LocalStorage;
-import fr.gameofarkadia.safecombat.util.Util;
+import fr.gameofarkadia.safecombat.configuration.GeneralConfiguration;
+import fr.gameofarkadia.safecombat.connection.FirstPlayerConnectionHandler;
+import fr.gameofarkadia.safecombat.listener.*;
+import fr.gameofarkadia.safecombat.protection.ProtectionManager;
+import fr.gameofarkadia.safecombat.protection.ProtectionManagerImpl;
+import fr.gameofarkadia.safecombat.sync.IpcSynchronizer;
+import fr.gameofarkadia.safecombat.util.PlayerTransfertHandler;
+import fr.gameofarkadia.safecombat.wanted.ToClearPlayersList;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayersManager;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayersManagerImpl;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
 
-public final class Main extends JavaPlugin {
+@Getter
+public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
-    private static Main INSTANCE;
-    @Getter private static final CombatManager combatManager = new CombatManager();
-    @Getter  private static Lang lang;
-    @Getter private static boolean isWGEnabled;
+  private static Main INSTANCE;
 
-    @Getter private static final Set<UUID> kickedPlayers = new HashSet<>();
-    @Getter private static final Set<UUID> diedPlayers = new HashSet<>();
+  private GeneralConfiguration configuration;
+  private final IpcSynchronizer synchronizer = new IpcSynchronizer();;
+  private PlayerTransfertHandler playerTransfertHandler;
+  @Getter private static final ToClearPlayersList toClearPlayersList = new ToClearPlayersList();
 
-    private LocalStorage localStorage;
+  private ProtectionManager protectionManager;
+  private WantedPlayersManager wantedPlayersManager;
+  private CombatManager combatManager;
+  private final FirstPlayerConnectionHandler firstPlayerConnectionHandler = new FirstPlayerConnectionHandler();
 
-    @Override
-    public void onLoad() {
-        SafeCombatAPI.initialize(combatManager);
-        if (Bukkit.getPluginManager().isPluginEnabled("WorldGuard")) {
-            isWGEnabled = true;
-            WGBridge.load();
-        }
-        localStorage = new LocalStorage(getDataFolder());
-    }
+  @Override
+  public void onLoad() {
+    INSTANCE = this;
+    SafeCombatScheduler.setPlugin(this);
 
-    @Override
-    public void onEnable() {
-        INSTANCE = this;
-        saveDefaultConfig();
-        reloadConfig();
-        getConfig().options().copyDefaults(true);
-        saveConfig();
+    configuration = new GeneralConfiguration(getDataFolder());
+    configuration.reload();
 
-        // Setup lang files
-        Lang.setupFiles();
-        lang = new Lang(getConfig().getString("language", "fr"));
+    combatManager = new CombatManagerImpl();
+    wantedPlayersManager = new WantedPlayersManagerImpl();
 
-        if(isWGEnabled && !Config.getBoolean("pvp.enderpearl.back-safezone")) {
-            Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
-            Bukkit.getConsoleSender().sendMessage(Util.prefix() + lang.get("dependency.worldguard"));
-        }
+    SafeCombatAPI.initialize(this);
+    WGBridge.initialize();
+  }
 
-        // Setup command, listeners and managers
-        new ProtectionCommand();
-        Bukkit.getPluginManager().registerEvents(new SafeCombatListener(), this);
+  @Override
+  public void onEnable() {
+    saveDefaultConfig();
+    reloadConfig();
+    getConfig().options().copyDefaults(true);
+    saveConfig();
 
-        localStorage.reload();
-    }
+    synchronizer.initialize();
+    playerTransfertHandler = new PlayerTransfertHandler(this);
 
-    @Override
-    public void onDisable() {
-        localStorage.save();
-    }
+    ArkadiaLib.getDatabaseManager().getMigrationsManager().newProject(this, configuration.getDatabaseName())
+        .registerAllInJar("migrations")
+        .applyMigrations()
+        .whenComplete((ver, err) -> {
+          if (err != null) {
+            logger().error("Could not migrate database. Disabling plugin.", err);
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+          }
+          logger().info("Database migrated to version {}.", ver);
+          SafeCombatScheduler.run(() -> {
+            try {
+              lateInit();
+            } catch (Exception e) {
+              logger().error("Could not finish lateInit.", e);
+            }
+          });
+        });
 
-    public static Main getInstance() {
-        return INSTANCE;
-    }
+  }
 
+  @Override
+  public void onDisable() {
+    if (playerTransfertHandler != null)
+      playerTransfertHandler.unregister();
+  }
+
+  private void lateInit() {
+    firstPlayerConnectionHandler.lateInit();
+    toClearPlayersList.lateInit();
+
+    // protection manager
+    protectionManager = new ProtectionManagerImpl(ArkadiaLib.getDatabaseManager());
+
+    // Setup command, listeners and managers
+    new ProtectionCommand();
+    new AdminCommand();
+    Bukkit.getPluginManager().registerEvents(new DisconnectCombatListener(), this);
+    Bukkit.getPluginManager().registerEvents(new FightListener(), this);
+    Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
+    Bukkit.getPluginManager().registerEvents(new SafeZoneListener(), this);
+  }
+
+  /**
+   * Get the configuration entry-point.
+   *
+   * @return a non-null config instance. Will never change.
+   */
+  public static @NotNull GeneralConfiguration config() {
+    return INSTANCE.configuration;
+  }
+
+  /**
+   * Get plugin logger instance.
+   *
+   * @return the SLF4J logger.
+   */
+  public static @NotNull Logger logger() {
+    return INSTANCE.getSLF4JLogger();
+  }
+
+  /**
+   * Get the plugin synchronizer.
+   *
+   * @return the synchronizer singleton.
+   */
+  public static @NotNull IpcSynchronizer synchronizer() {
+    return INSTANCE.synchronizer;
+  }
+
+  /**
+   * Get the plugin player transfert handler.
+   *
+   * @return the synchronizer singleton.
+   */
+  public static @NotNull PlayerTransfertHandler playerTransfertHandler() {
+    return INSTANCE.playerTransfertHandler;
+  }
+
+  public static @NotNull String prefix() {
+    return config().getPrefix();
+  }
+
+  public static @NotNull FirstPlayerConnectionHandler firstPlayerConnectionHandler() {
+    return INSTANCE.firstPlayerConnectionHandler;
+  }
+
+  @Override
+  public @NotNull String getServerId() {
+    return HuskSyncHelper.getServerId();
+  }
+
+  public static @Nullable InputStream fetchJarRessource(@NotNull String path) throws IOException {
+    return INSTANCE.getResource(path);
+  }
 }

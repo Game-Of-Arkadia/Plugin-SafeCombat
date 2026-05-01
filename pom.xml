@@ -22,7 +22,7 @@
 
     <!-- Versions -->
     <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
-    <arkadialib.version>2.5.0-SNAPSHOT</arkadialib.version>
+    <arkadialib.version>2.5.6</arkadialib.version>
   </properties>
 
   <repositories>

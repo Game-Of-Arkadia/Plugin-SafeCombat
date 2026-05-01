@@ -1,11 +1,13 @@
 package fr.gameofarkadia.safecombat;
 
 import com.google.common.base.Preconditions;
+import fr.gameofarkadia.safecombat.combat.CombatManager;
+import fr.gameofarkadia.safecombat.protection.ProtectionManager;
+import fr.gameofarkadia.safecombat.wanted.WantedPlayersManager;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
 import java.util.UUID;
 
 /**
@@ -14,12 +16,16 @@ import java.util.UUID;
 public final class SafeCombatAPI {
   private SafeCombatAPI() {}
 
-  private static SafeCombatManager instance;
+  private static SafeCombatPlugin instance;
 
   @ApiStatus.Internal
-  static void initialize(@NotNull SafeCombatManager plugin) {
+  static void initialize(@NotNull SafeCombatPlugin plugin) {
     Preconditions.checkState(instance == null, "SafeCombatAPI is already initialized");
     instance = plugin;
+  }
+
+  public static @NotNull String getServerId() {
+    return instance.getServerId();
   }
 
   /**
@@ -28,7 +34,7 @@ public final class SafeCombatAPI {
    * @return {@code true} if the player is in a fight.
    */
   public static boolean isFighting(@NotNull UUID playerUUID) {
-    return instance.isFighting(playerUUID);
+    return instance.getCombatManager().isFighting(playerUUID);
   }
 
   /**
@@ -36,8 +42,8 @@ public final class SafeCombatAPI {
    * @param player The player to check.
    * @return {@code true} if the player is in a fight.
    */
-  public static boolean  isFighting(@NotNull OfflinePlayer player) {
-    return instance.isFighting(player);
+  public static boolean isFighting(@NotNull OfflinePlayer player) {
+    return instance.getCombatManager().isFighting(player);
   }
 
   /**
@@ -46,7 +52,7 @@ public final class SafeCombatAPI {
    * @return {@code true} if the player cannot be attacked.
    */
   public static boolean isProtected(@NotNull UUID playerUUID) {
-    return instance.isProtected(playerUUID);
+    return instance.getProtectionManager().isProtected(playerUUID);
   }
 
   /**
@@ -55,24 +61,33 @@ public final class SafeCombatAPI {
    * @return {@code true} if the player cannot be attacked.
    */
   public static boolean isProtected(@NotNull OfflinePlayer player) {
-    return instance.isProtected(player);
+    return instance.getProtectionManager().isProtected(player);
   }
 
-  /**
-   * Protect a player for a duration.
-   * @param player the player to protect.
-   * @param duration the duration.
-   */
-  public static void addPlayerProtection(@NotNull OfflinePlayer player, @NotNull Duration duration) {
-    instance.addPlayerProtection(player, duration);
+  public static boolean isWanted(@NotNull OfflinePlayer player) {
+    return instance.getWantedPlayersManager().isWanted(player);
   }
 
-  /**
-   * Cancel a protection.
-   * @param player the player to cancel the protection of.
-   */
-  public static void removePlayerProtection(@NotNull OfflinePlayer player) {
-    instance.removePlayerProtection(player);
+  public static boolean isWantedLocally(@NotNull OfflinePlayer player) {
+    return instance.getWantedPlayersManager().isWantedLocally(player);
   }
+
+  public static boolean isWanted(@NotNull UUID playerUUID) {
+    return instance.getWantedPlayersManager().isWanted(playerUUID);
+  }
+
+  public static @NotNull CombatManager getCombatManager() {
+    return instance.getCombatManager();
+  }
+
+  public static @NotNull ProtectionManager getProtectionManager() {
+    return instance.getProtectionManager();
+  }
+
+  public static @NotNull WantedPlayersManager getWantedPlayersManager() {
+    return instance.getWantedPlayersManager();
+  }
+
+
 
 }

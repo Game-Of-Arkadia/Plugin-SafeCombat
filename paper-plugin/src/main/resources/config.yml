@@ -1,36 +1,33 @@
-# Name of the file (without its extension) in "lang" directory,
-# that will be used for the messages translations.
-# You can create a custom file, with your language, inside the directory and use it there.
-language: en
+prefix: "&b&l[&9SafeCombat&b&l]"
+
+database:
+  name: "plugin_safecombat"
+
+# PvP settings
 pvp:
-  # Time, in seconds, to stop be considered in PvP
-  duration: 30
-  # Time, in seconds, to be considered to have leaved the fight
-  # -1 to disable
-  disconnection: 10
-  # Time, in hours, a new player is protected and couldn't attack
-  newbie-protection: 48
-  # Time, in seconds, a respawned player is protected and couldn't attack
-  # -1 to disable
-  respawn-protection: 30
-  trident:
-    # Cooldown a trident material to the player if it has a riptide enchant
-    riptide-cooldown: true
-    # Time, in seconds
-    cooldown-time: 15
-  enderpearl:
-    # Allow people to return to safezone with an enderpearl when they are in combat (deactivates the forcefield)
-    back-safezone: false
-    # Set a custom cooldown to ender pearl when thrown
-    custom-cooldown: true
-    # Time, in seconds
-    cooldown-time: 10
-  # Forcefield settings (cancel when player goes back in safezones)
-  forcefield:
-    # Higher are the values, greater is the risk of lag
-    radius: 8
-    height: 5
-    material: "RED_STAINED_GLASS"
+  durations:
+    # Duration of a fight.
+    # A player is only allowed to leave after this duration once a fight started.
+    fight: 30s
+
+    # First-connection duration protection.
+    newbie-protection: 48h
+    # Respawn duration protection.
+    respawn-protection: 20s
+    # Server join duration. This one is transient.
+    server-join-protection: 5s
+
+    # Time, in seconds, to be considered to have leaved the fight after a disconnection.
+    # If the player did not reconnect until then, he will be punished.
+    allowed-disconnection: 1m
+
+punishment:
+  lose-money: true
+  ban:
+    enabled: true
+    reason: "Déconnecté en combat."
+    duration: 1d
+    main-server: arkadia
 
 # Banned commands if the player is in pvp
 banned-commands:
@@ -47,3 +44,5 @@ banned-commands:
   - "spawn"
   - "espawn"
   - "f home"
+  - "tp"
+  - "islet"
