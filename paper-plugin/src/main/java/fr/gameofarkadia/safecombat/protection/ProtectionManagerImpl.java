@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProtectionManagerImpl implements ProtectionManager {
@@ -46,16 +47,16 @@ public class ProtectionManagerImpl implements ProtectionManager {
   }
 
   @Override
-  public boolean removePlayerProtection(@NotNull OfflinePlayer player) {
-    var data = protections.remove(player.getUniqueId());
+  public boolean removePlayerProtection(@NotNull UUID uuid) {
+    var data = protections.remove(uuid);
     if(data == null) return false;
 
     SafeCombatScheduler.runAsync(() -> database.delete(data));
-    Optional.ofNullable(localProtectionTasks.remove(player.getUniqueId()))
+    Optional.ofNullable(localProtectionTasks.remove(uuid))
         .ifPresent(PlayerProtectedTask::cancel);
 
     // propagate
-    Main.synchronizer().sendRpc(SyncCommand.REMOVED_PROTECTION, player.getUniqueId());
+    Main.synchronizer().sendRpc(SyncCommand.REMOVED_PROTECTION, uuid);
 
     return true;
   }
@@ -75,8 +76,8 @@ public class ProtectionManagerImpl implements ProtectionManager {
   }
 
   @Override
-  public void signalPlayerJoined(@NotNull Player player) {
-    SafeCombatScheduler.execAsync(() -> {
+  public CompletableFuture<Void> signalPlayerJoined(@NotNull Player player) {
+    return SafeCombatScheduler.execAsync(() -> {
       UUID uuid = player.getUniqueId();
       var data = database.getProtectionEntry(uuid);
       if(data == null) return;
@@ -85,7 +86,7 @@ public class ProtectionManagerImpl implements ProtectionManager {
       protections.put(uuid, data);
       var task = localProtectionTasks.get(uuid);
       if(task != null) {
-        player.sendMessage(Main.prefix() + "§6Rappel : §eVous bénéficiez d'une protection. Vous ne pouvez§c ni attaquer, ni être attaqué&§e. Pour y renoncer, faites la commande §c/protection disable§e.");
+        player.sendMessage(Main.prefix() + "§6Rappel : §eVous bénéficiez d'une protection. Vous ne pouvez§c ni attaquer, ni être attaqué§e. Pour y renoncer, faites la commande §c/protection disable§e.");
         task.updatePlayer(player);
       }
     });

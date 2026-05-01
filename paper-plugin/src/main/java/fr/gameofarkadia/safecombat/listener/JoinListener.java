@@ -1,5 +1,6 @@
 package fr.gameofarkadia.safecombat.listener;
 
+import fr.gameofarkadia.arkadialib.api.utils.Ref;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
@@ -36,24 +37,25 @@ public class JoinListener implements Listener {
     }
 
     // Newbie / PvP protection
-    Main.firstPlayerConnectionHandler().checkFirstPlayerConnection(player).whenComplete((isFirst, err) -> {
-      if (err != null) {
-        Main.logger().error("Could not check if player {} is in first connection. No protection will be applied.", player.getName(), err);
-        return;
-      }
-
-      // First login : add a newbie protection
-      applyConnectionProtection(player, isFirst);
-
-      // Not first connection. Signal join.
-      // This will update only if needed.
-      SafeCombatAPI.getProtectionManager().signalPlayerJoined(player);
-    });
+    Ref<Boolean> isFirstRef = new Ref<>();
+    Main.firstPlayerConnectionHandler().checkFirstPlayerConnection(player)
+        .thenCompose(isFirst -> {
+          isFirstRef.object = isFirst;
+          return SafeCombatAPI.getProtectionManager().signalPlayerJoined(player);
+        }).thenRun(() -> {
+          if(!SafeCombatAPI.isProtected(player))
+            applyConnectionProtection(player, isFirstRef.object);
+        })
+        .exceptionally(err -> {
+          Main.logger().error("An error occurred while checking player {} first connection or signaling his join.", player.getName(), err);
+          return null;
+        });
   }
 
   private void applyConnectionProtection(@NotNull Player player, boolean firstConnection) {
     if (firstConnection) {
       var newbieDuration = config.getNewbieProtectionDuration();
+      Main.logger().info("Applying NEWBIE protection to player {} for {} seconds.", player.getName(), newbieDuration.toSecondsInt());
       if (newbieDuration.asTicks() > 0) {
         SafeCombatAPI.getProtectionManager().addPlayerProtection(
             player,
@@ -66,6 +68,7 @@ public class JoinListener implements Listener {
 
     var connectDuration = config.getServerJoinProtectionDuration();
     if (connectDuration.asTicks() > 0) {
+      Main.logger().info("Applying server join protection to player {} for {} seconds.", player.getName(), connectDuration.toSecondsInt());
       SafeCombatAPI.getProtectionManager().addPlayerProtection(
           player,
           ProtectionReason.SERVER_JOIN,

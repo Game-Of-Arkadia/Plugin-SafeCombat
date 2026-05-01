@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface to manage "new player protection".
@@ -41,7 +42,11 @@ public interface ProtectionManager {
    * @param player the player to cancel the protection of.
    * @return {@code true} if the player was protected and is now unprotected, {@code false} otherwise.
    */
-  boolean removePlayerProtection(@NotNull OfflinePlayer player);
+  default boolean removePlayerProtection(@NotNull OfflinePlayer player) {
+    return removePlayerProtection(player.getUniqueId());
+  }
+
+  boolean removePlayerProtection(@NotNull UUID uuid);
 
   default @NotNull Duration getRemainingDuration(@NotNull OfflinePlayer player) {
     return getRemainingDuration(player.getUniqueId());
@@ -57,7 +62,7 @@ public interface ProtectionManager {
   void playerProtectionRemovedByRemote(@NotNull UUID uuid);
 
   @ApiStatus.Internal
-  void signalPlayerJoined(@NotNull Player player);
+  CompletableFuture<Void> signalPlayerJoined(@NotNull Player player);
 
   @ApiStatus.Internal
   void signalPlayerLeft(@NotNull Player player);

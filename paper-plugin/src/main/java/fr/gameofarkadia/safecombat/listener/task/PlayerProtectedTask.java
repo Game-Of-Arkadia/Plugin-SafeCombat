@@ -7,14 +7,15 @@ import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.protection.ProtectedData;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -23,9 +24,11 @@ import java.util.function.Consumer;
  */
 public class PlayerProtectedTask implements Runnable {
 
-  private final int taskId;
+  private static final String SHIELD = "\uD83D\uDEE1";
+
+  private final BukkitTask task;
   private final ProtectedData protection;
-  private final OfflinePlayer offlinePlayer;
+  private final UUID uuid;
   private BossBar bossBar;
   private final Duration totalDuration;
 
@@ -35,16 +38,16 @@ public class PlayerProtectedTask implements Runnable {
    * @param data protection data.
    */
   public PlayerProtectedTask(@NotNull ProtectedData data) {
-    taskId = SafeCombatScheduler.runTimerAsync(this, 20).getTaskId();
+    this.task = SafeCombatScheduler.runTimerAsync(this, 20);
     this.protection = data;
-    this.offlinePlayer = Bukkit.getOfflinePlayer(data.player());
+    this.uuid = data.player();
 
     totalDuration = Duration.between(protection.protectionStarted(), protection.protectionFinish());
   }
 
   private @NotNull BossBar getBossBar() {
     if(bossBar == null) {
-      bossBar = Bukkit.createBossBar("", BarColor.BLUE, BarStyle.SEGMENTED_20);
+      bossBar = Bukkit.createBossBar("§b<protection>", BarColor.BLUE, BarStyle.SEGMENTED_20);
       ifOnline(bossBar::addPlayer);
       bossBar.setVisible(true);
     }
@@ -55,7 +58,8 @@ public class PlayerProtectedTask implements Runnable {
   public void run() {
     // Check if over
     if (protection.isOver()) {
-      SafeCombatAPI.getProtectionManager().removePlayerProtection(offlinePlayer);
+      Main.logger().info("Player protection ended: {} by task.", protection);
+      SafeCombatAPI.getProtectionManager().removePlayerProtection(uuid);
       ifOnline(p -> p.sendMessage(Main.prefix() + "§eVotre protection a pris fin. Vous pouvez désormais§c attaquer§e et§c être attaqué§e par d'autres joueurs."));
       cancel();
       return;
@@ -64,10 +68,10 @@ public class PlayerProtectedTask implements Runnable {
     if(isOffline()) return;
 
     // Update boss-bar
-    Duration duration = protection.duration();
-    getBossBar().setTitle("§c§l⚔ §b§lProtection §7|§b Reste §6{duration} §c§l⚔"
-        .replace("{duration}", DurationUtils.formatDuration(duration)));
-    getBossBar().setProgress((double) duration.toMillis() / totalDuration.toMillis());
+    Duration remaining = protection.remaining();
+    getBossBar().setTitle(("§9§l"+SHIELD+" §b§lProtection §7|§b Reste §6{duration} §9§l" + SHIELD)
+        .replace("{duration}", DurationUtils.formatDuration(remaining)));
+    getBossBar().setProgress((double) remaining.toMillis() / totalDuration.toMillis());
   }
 
   /**
@@ -75,17 +79,17 @@ public class PlayerProtectedTask implements Runnable {
    * @param player player.
    */
   public void updatePlayer(@NotNull Player player) {
-    Preconditions.checkArgument(player.getUniqueId().equals(offlinePlayer.getUniqueId()), "Player must be the same as the one of this task.");
+    Preconditions.checkArgument(uuid.equals(player.getUniqueId()), "Player must be the same as the one of this task.");
     bossBar.removeAll();
     bossBar.addPlayer(player);
   }
 
   private boolean isOffline() {
-    return ! offlinePlayer.isOnline();
+    return Bukkit.getPlayer(uuid) == null;
   }
 
-  private void ifOnline(Consumer<Player> action) {
-    Player player = offlinePlayer.getPlayer();
+  private void ifOnline(@NotNull Consumer<Player> action) {
+    Player player = Bukkit.getPlayer(uuid);
     if (player != null)
       action.accept(player);
   }
@@ -94,7 +98,7 @@ public class PlayerProtectedTask implements Runnable {
    * Cancel this task.
    */
   public void cancel() {
-    Bukkit.getScheduler().cancelTask(taskId);
+    task.cancel();
     if(bossBar != null) {
       bossBar.removeAll();
       bossBar.setVisible(false);

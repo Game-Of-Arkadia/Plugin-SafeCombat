@@ -41,6 +41,14 @@ public record ProtectedData(
   }
 
   /**
+   * Duration of this order.
+   * @return a non-null duration.
+   */
+  public @NotNull Duration remaining() {
+    return Duration.between(LocalDateTime.now(), protectionFinish);
+  }
+
+  /**
    * Check if this protection is over.
    * @return true if "finish" date-time is after "now".
    */

@@ -44,6 +44,11 @@ public class FirstPlayerConnectionHandler {
     return SafeCombatScheduler.execAsync(() -> isItFirstPlayerConnection(player));
   }
 
+  /// To clear seen-player RAM cache.
+  public void clearCache() {
+    seenPlayers.clear();
+  }
+
   private boolean isItFirstPlayerConnection(@NotNull Player player) {
     if(seenPlayers.contains(player.getUniqueId()))
       return false;

@@ -44,7 +44,7 @@ public class PlayerProtectionDatabase {
   }
 
   @Nullable ProtectedData getProtectionEntry(@NotNull UUID uuid) {
-    String sql = "SELECT * FROM " + dbName() + ".protected_players WHERE uuid = ?;";
+    String sql = "SELECT * FROM " + dbName() + ".protected_players WHERE player_uuid = ?;";
     try(var conn = database.getConnection(); var statement = conn.prepareStatement(sql)) {
       statement.setString(1, uuid.toString());
 

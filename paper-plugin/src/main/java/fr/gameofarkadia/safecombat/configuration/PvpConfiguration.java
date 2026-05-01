@@ -1,7 +1,9 @@
 package fr.gameofarkadia.safecombat.configuration;
 
 import fr.gameofarkadia.arkadialib.api.utils.DurationWrapper;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Player-versus-player configuration.
  */
-@Getter
+@Getter @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class PvpConfiguration {
 
   private DurationWrapper fightDuration;
