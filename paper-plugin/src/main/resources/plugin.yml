@@ -7,7 +7,7 @@ description: '${project.description}'
 depend:
   - ArkadiaLib
   - HuskSync
-  - PterodactylApi
+  - PterodactylAPI
 
 commands:
   protection:

@@ -1,5 +1,6 @@
 package fr.gameofarkadia.safecombat.sync;
 
+import com.google.common.base.Preconditions;
 import fr.arkadia.pterodactyl.api.PterodactylAPI;
 import fr.arkadia.pterodactyl.api.ipc.IpcChannelListener;
 import fr.arkadia.pterodactyl.api.ipc.IpcNotification;
@@ -16,14 +17,14 @@ import java.util.UUID;
 public class IpcSynchronizer implements IpcChannelListener {
 
   private static final String IPC_CHANNEL = "safe_combat_events";
+  private boolean initialized;
 
-  /**
-   * Register a new synchronizer.
-   */
-  public IpcSynchronizer() {
+  public synchronized void initialize() {
+    Preconditions.checkState(!initialized, "Already initialized.");
     PterodactylAPI.getIpcPublisher()
         .getChannel(IPC_CHANNEL)
         .registerListener(this);
+    initialized= true;
   }
 
   /**

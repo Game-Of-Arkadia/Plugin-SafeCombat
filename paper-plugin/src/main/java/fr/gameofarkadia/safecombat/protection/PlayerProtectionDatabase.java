@@ -28,7 +28,7 @@ public class PlayerProtectionDatabase {
    * @return a non-null list.
    */
   @NotNull List<ProtectedData> getProtectionEntries() {
-    String sql = "SELECT * FROM " + dbName() + ".players_to_kill;";
+    String sql = "SELECT * FROM " + dbName() + ".protected_players;";
     try(var conn = database.getConnection(); var statement = conn.prepareStatement(sql)) {
       ResultSet result = statement.executeQuery();
       List<ProtectedData> output = new ArrayList<>();
@@ -38,7 +38,7 @@ public class PlayerProtectionDatabase {
       }
       return output;
     } catch (SQLException e) {
-      throw new RuntimeException("Could not list kill orders.", e);
+      throw new RuntimeException("Could not list protections.", e);
     }
   }
 

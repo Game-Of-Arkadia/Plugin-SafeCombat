@@ -31,9 +31,9 @@ public class FightListener implements Listener {
   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
   void onPlayerFightPlayer(@NotNull EntityDamageByEntityEvent e) {
     // Only listen for player to player combat event.
-    if (!(e.getEntity() instanceof Player player) || e.getEntity().hasMetadata("NPC")) return;
+    if (!(e.getEntity() instanceof Player player) || isNPC(player)) return;
     Entity realDamager = e.getDamageSource().getCausingEntity();
-    if(!(realDamager instanceof Player damager)) return;
+    if(!(realDamager instanceof Player damager) || isNPC(damager)) return;
 
     // Cancel fight if the player or the damager is protected
     if (SafeCombatAPI.isProtected(damager) || SafeCombatAPI.isProtected(player)) {
@@ -54,6 +54,10 @@ public class FightListener implements Listener {
     if (!player.getGameMode().equals(GameMode.CREATIVE)) {
       SafeCombatAPI.getCombatManager().setStartedFight(player, true);
     }
+  }
+
+  private static boolean isNPC(@NotNull Entity entity) {
+    return entity.hasMetadata("NPC");
   }
 
   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

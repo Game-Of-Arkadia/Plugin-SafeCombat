@@ -31,7 +31,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
   private static Main INSTANCE;
 
   private GeneralConfiguration configuration;
-  private IpcSynchronizer synchronizer;
+  private final IpcSynchronizer synchronizer = new IpcSynchronizer();;
   private PlayerTransfertHandler playerTransfertHandler;
 
   private ProtectionManager protectionManager;
@@ -41,6 +41,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
   @Override
   public void onLoad() {
+    INSTANCE = this;
     SafeCombatScheduler.setPlugin(this);
 
     configuration = new GeneralConfiguration(getDataFolder());
@@ -49,19 +50,17 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
     combatManager = new CombatManagerImpl();
     wantedPlayersManager = new WantedPlayersManagerImpl();
 
-    synchronizer = new IpcSynchronizer();
-
     SafeCombatAPI.initialize(this);
   }
 
   @Override
   public void onEnable() {
-    INSTANCE = this;
     saveDefaultConfig();
     reloadConfig();
     getConfig().options().copyDefaults(true);
     saveConfig();
 
+    synchronizer.initialize();
     playerTransfertHandler = new PlayerTransfertHandler(this);
 
     if (!configuration.getPvpConfiguration().isEnderpearlBypassForceField()) {
@@ -73,10 +72,11 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
         .applyMigrations()
         .whenComplete((ver, err) -> {
           if (err != null) {
-            logger().error("Could not migrate database.", err);
-          } else {
-            logger().info("Database migrated to version {}.", ver);
+            logger().error("Could not migrate database. Disabling plugin.", err);
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
           }
+          logger().info("Database migrated to version {}.", ver);
           SafeCombatScheduler.run(() -> {
             try {
               lateInit();
