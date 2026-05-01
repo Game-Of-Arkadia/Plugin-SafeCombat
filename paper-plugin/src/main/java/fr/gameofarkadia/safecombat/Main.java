@@ -2,6 +2,7 @@ package fr.gameofarkadia.safecombat;
 
 import fr.gameofarkadia.arkadialib.api.ArkadiaLib;
 import fr.gameofarkadia.safecombat.bridge.HuskSyncHelper;
+import fr.gameofarkadia.safecombat.bridge.WGBridge;
 import fr.gameofarkadia.safecombat.combat.CombatManager;
 import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
 import fr.gameofarkadia.safecombat.command.AdminCommand;
@@ -53,6 +54,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
     wantedPlayersManager = new WantedPlayersManagerImpl();
 
     SafeCombatAPI.initialize(this);
+    WGBridge.initialize();
   }
 
   @Override
@@ -64,10 +66,6 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
 
     synchronizer.initialize();
     playerTransfertHandler = new PlayerTransfertHandler(this);
-
-    if (!configuration.getPvpConfiguration().isEnderpearlBypassForceField()) {
-      Bukkit.getPluginManager().registerEvents(new ForceFieldListener(), this);
-    }
 
     ArkadiaLib.getDatabaseManager().getMigrationsManager().newProject(this, configuration.getDatabaseName())
         .registerAllInJar("migrations")
