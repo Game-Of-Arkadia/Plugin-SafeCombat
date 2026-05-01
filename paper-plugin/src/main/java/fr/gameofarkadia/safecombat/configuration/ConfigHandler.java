@@ -72,11 +72,11 @@ public abstract class ConfigHandler {
 
     private @Nullable String readDefaultConfig() {
         String path = DEFAULT_FOLDER + "/" + file.getName();
-        try(InputStream is = Main.getInstance().getResource(path)) {
+        try(InputStream is = Main.fetchJarRessource(path)) {
             Objects.requireNonNull(is, "Could not find resource '" + path + "' in jar.");
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            Main.getInstance().getSLF4JLogger().error("Could not read in-jar resource {}.", path);
+            Main.logger().error("Could not read in-jar resource {}.", path);
             return null;
         }
     }
@@ -86,7 +86,7 @@ public abstract class ConfigHandler {
             writer.append(data);
             writer.flush();
         } catch (IOException e) {
-            Main.getInstance().getSLF4JLogger().error("Could not write default data to file {}.", file);
+            Main.logger().error("Could not write default data to file {}.", file);
         }
     }
 

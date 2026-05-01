@@ -4,7 +4,6 @@ import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
 import fr.gameofarkadia.safecombat.protection.ProtectionReason;
-import fr.gameofarkadia.safecombat.util.FirstJoinHelper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,7 +36,7 @@ public class JoinListener implements Listener {
     }
 
     // Newbie / PvP protection
-    FirstJoinHelper.isItFirstConnection(player).whenComplete((isFirst, err) -> {
+    Main.firstPlayerConnectionHandler().checkFirstPlayerConnection(player).whenComplete((isFirst, err) -> {
       if (err != null) {
         Main.logger().error("Could not check if player {} is in first connection. No protection will be applied.", player.getName(), err);
         return;

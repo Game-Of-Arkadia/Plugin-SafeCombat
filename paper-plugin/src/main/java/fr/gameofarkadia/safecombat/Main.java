@@ -7,6 +7,7 @@ import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
 import fr.gameofarkadia.safecombat.command.AdminCommand;
 import fr.gameofarkadia.safecombat.command.ProtectionCommand;
 import fr.gameofarkadia.safecombat.configuration.GeneralConfiguration;
+import fr.gameofarkadia.safecombat.connection.FirstPlayerConnectionHandler;
 import fr.gameofarkadia.safecombat.listener.*;
 import fr.gameofarkadia.safecombat.protection.ProtectionManager;
 import fr.gameofarkadia.safecombat.protection.ProtectionManagerImpl;
@@ -18,7 +19,11 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Getter
 public final class Main extends JavaPlugin implements SafeCombatPlugin {
@@ -32,6 +37,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
   private ProtectionManager protectionManager;
   private WantedPlayersManager wantedPlayersManager;
   private CombatManager combatManager;
+  private final FirstPlayerConnectionHandler firstPlayerConnectionHandler = new FirstPlayerConnectionHandler();
 
   @Override
   public void onLoad() {
@@ -89,6 +95,8 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
   }
 
   private void lateInit() {
+    firstPlayerConnectionHandler.lateInit();
+
     // protection manager
     protectionManager = new ProtectionManagerImpl(ArkadiaLib.getDatabaseManager());
 
@@ -99,11 +107,6 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
     Bukkit.getPluginManager().registerEvents(new FightListener(), this);
     Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
     Bukkit.getPluginManager().registerEvents(new SafeZoneListener(), this);
-  }
-
-  @Deprecated
-  public static Main getInstance() {
-    return INSTANCE;
   }
 
   /**
@@ -146,8 +149,16 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
     return config().getPrefix();
   }
 
+  public static @NotNull FirstPlayerConnectionHandler firstPlayerConnectionHandler() {
+    return INSTANCE.firstPlayerConnectionHandler;
+  }
+
   @Override
   public @NotNull String getServerId() {
     return HuskSyncHelper.getServerId();
+  }
+
+  public static @Nullable InputStream fetchJarRessource(@NotNull String path) throws IOException {
+    return INSTANCE.getResource(path);
   }
 }
