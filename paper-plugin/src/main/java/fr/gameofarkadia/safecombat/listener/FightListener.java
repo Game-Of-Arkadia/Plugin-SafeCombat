@@ -38,9 +38,9 @@ public class FightListener implements Listener {
     // Cancel fight if the player or the damager is protected
     if (SafeCombatAPI.isProtected(damager) || SafeCombatAPI.isProtected(player)) {
       if(SafeCombatAPI.isProtected(damager)) {
-        damager.sendMessage(Main.prefix() + "Tu es§2 protégé§c. Tu ne peux donc pas attaquer.");
+        damager.sendMessage(Main.prefix() + "§cTu es§2 protégé§c. Tu ne peux donc pas attaquer.");
       } else if(SafeCombatAPI.isProtected(player)) {
-        damager.sendMessage(Main.prefix() + "Ce joueur est§2 protégé§c. Tu ne peux donc pas l'attaquer.");
+        damager.sendMessage(Main.prefix() + "§cCe joueur est§2 protégé§c. Tu ne peux donc pas l'attaquer.");
       }
       e.setCancelled(true);
       return;
