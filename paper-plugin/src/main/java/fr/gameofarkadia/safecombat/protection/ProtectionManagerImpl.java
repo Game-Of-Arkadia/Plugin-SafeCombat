@@ -5,6 +5,7 @@ import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatScheduler;
 import fr.gameofarkadia.safecombat.listener.task.PlayerProtectedTask;
 import fr.gameofarkadia.safecombat.sync.SyncCommand;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -100,5 +101,16 @@ public class ProtectionManagerImpl implements ProtectionManager {
     if(task != null) {
       task.cancel();
     }
+  }
+
+  @Override
+  public void recompute() {
+    // Clear all
+    protections.clear();
+    localProtectionTasks.values().forEach(PlayerProtectedTask::cancel);
+    localProtectionTasks.clear();
+
+    // Recompute for all players
+    Bukkit.getOnlinePlayers().forEach(this::signalPlayerJoined);
   }
 }

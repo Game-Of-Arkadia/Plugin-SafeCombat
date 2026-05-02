@@ -67,4 +67,7 @@ public interface ProtectionManager {
   @ApiStatus.Internal
   void signalPlayerLeft(@NotNull Player player);
 
+  @ApiStatus.Internal
+  void recompute();
+
 }

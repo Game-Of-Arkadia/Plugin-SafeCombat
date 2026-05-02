@@ -42,6 +42,7 @@ public class AdminCommand extends ArkadiaCommand {
     if("reload".equals(args[0])) {
       Main.config().reload();
       Main.firstPlayerConnectionHandler().clearCache();
+      SafeCombatAPI.getProtectionManager().recompute();
       sender.sendMessage("§aConfiguration reloaded.");
       return true;
     }
