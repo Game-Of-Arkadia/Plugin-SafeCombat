@@ -1,7 +1,6 @@
 package fr.gameofarkadia.safecombat.command;
 
 import fr.gameofarkadia.arkadialib.api.commands.ArkadiaCommand;
-import fr.gameofarkadia.arkadialib.api.commands.PlayerArkadiaCommand;
 import fr.gameofarkadia.arkadialib.api.utils.DurationUtils;
 import fr.gameofarkadia.arkadialib.api.utils.DurationWrapper;
 import fr.gameofarkadia.safecombat.Main;
@@ -51,7 +50,7 @@ public class AdminCommand extends ArkadiaCommand {
       sender.sendMessage(Main.prefix() + "§cSpecify the player name.");
       return true;
     }
-    Player target = Bukkit.getPlayer(args[0]);
+    Player target = Bukkit.getPlayer(args[1]);
     if(target == null) {
       sender.sendMessage(Main.prefix() + "§cPlayer not found.");
       return true;
