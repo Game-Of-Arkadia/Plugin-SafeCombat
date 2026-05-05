@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +54,7 @@ public class FightListener implements Listener {
     }
     if (!player.getGameMode().equals(GameMode.CREATIVE)) {
       SafeCombatAPI.getCombatManager().setStartedFight(player, true);
+      player.leaveVehicle();
     }
   }
 
@@ -78,6 +80,14 @@ public class FightListener implements Listener {
           ProtectionReason.RESPAWN,
           config.getRespawnDuration().duration()
       );
+    }
+  }
+
+  @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+  void onMountWhileFighting(@NotNull EntityMountEvent e) {
+    if(e.getEntity() instanceof Player player && SafeCombatAPI.isFighting(player)) {
+      player.sendMessage(Main.prefix() + "§cTu ne peux pas monter sur un véhicule en combat.");
+      e.setCancelled(true);
     }
   }
 }
