@@ -35,40 +35,6 @@ public class SafeZoneListener implements Listener {
     }
   }
 
-
-  //FIXME mettre ça dan combatbehavior !
-
-//  /**
-//   * Cooldown riptide tridents for the player if set to true
-//   * in config.yml
-//   *
-//   * @param e The event
-//   */
-//  @EventHandler(priority = EventPriority.MONITOR)
-//  void onPlayerRiptide(@NotNull PlayerRiptideEvent e) {
-//    if( ! config.isRiptideEnabled()) return;
-//
-//    ItemStack is = e.getItem();
-//    if (!is.hasItemMeta()) return;
-//    if (!is.getItemMeta().hasEnchant(Enchantment.RIPTIDE)) return;
-//    e.getPlayer().setCooldown(Material.TRIDENT, (int) config.getRespawnDuration().toTicks());
-//  }
-//
-//  /**
-//   * Cooldown ender pearl for the player if set to true
-//   * in config.yml
-//   *
-//   * @param e The event
-//   */
-//  @EventHandler(priority = EventPriority.MONITOR)
-//  void onEnderPearlThrown(@NotNull ProjectileLaunchEvent e) {
-//    if (!config.isEnderpearlCooldownEnabled()) return;
-//    Projectile projectile = e.getEntity();
-//    if (!(projectile instanceof EnderPearl enderPearl) || !(enderPearl.getShooter() instanceof Player player)) return;
-//
-//    SafeCombatScheduler.run(() -> player.setCooldown(Material.ENDER_PEARL, (int) config.getEnderpearlCooldown().asTicks()));
-//  }
-
   /**
    * Cancel command if the player is in pvp
    *
@@ -78,9 +44,17 @@ public class SafeZoneListener implements Listener {
   void onPlayerEntersCommand(@NotNull PlayerCommandPreprocessEvent e) {
     Player player = e.getPlayer();
     if (!SafeCombatAPI.isFighting(player)) return;
-    String command = e.getMessage().replace("/", "");
 
-    if (Main.config().isBanned(command)) {
+    // Get first part
+    String[] args = e.getMessage().replace("/", "").toLowerCase().split(" ");
+    String first;
+    if(args[0].contains(":")) {
+      first = args[0].split(":", 2)[1];
+    } else {
+      first = args[0];
+    }
+
+    if (Main.config().isBanned(first)) {
       e.setCancelled(true);
       player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
       player.sendMessage(Main.prefix() + "§cCette commande est bannie en combat.");
