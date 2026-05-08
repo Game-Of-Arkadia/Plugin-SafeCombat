@@ -5,6 +5,7 @@ import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
 import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
 import fr.gameofarkadia.safecombat.protection.ProtectionReason;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,9 +17,11 @@ import org.jetbrains.annotations.NotNull;
  * Handle server joins. <br/>
  * Apply eventual protections.
  */
+@RequiredArgsConstructor
 public class JoinListener implements Listener {
 
   private final PvpConfiguration config = Main.config().getPvpConfiguration();
+  private final boolean enabled;
 
   /**
    * Called when a player joins after he is in the kill list
@@ -41,6 +44,9 @@ public class JoinListener implements Listener {
       Main.logger().info("Player {} is wanted in another server. Letting the task handle him.", player.getName());
       return;
     }
+
+    // Feature disabled
+    if(!enabled) return;
 
     // Newbie / PvP protection
     Ref<Boolean> isFirstRef = new Ref<>();

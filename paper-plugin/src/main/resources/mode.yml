@@ -1,0 +1,2 @@
+# If false, will only redirect ongoing connection to hub server.
+enabled: true

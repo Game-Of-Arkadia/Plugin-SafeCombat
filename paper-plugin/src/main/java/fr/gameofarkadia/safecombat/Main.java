@@ -9,6 +9,7 @@ import fr.gameofarkadia.safecombat.combat.CombatManagerImpl;
 import fr.gameofarkadia.safecombat.command.AdminCommand;
 import fr.gameofarkadia.safecombat.command.ProtectionCommand;
 import fr.gameofarkadia.safecombat.configuration.GeneralConfiguration;
+import fr.gameofarkadia.safecombat.configuration.ModeConfiguration;
 import fr.gameofarkadia.safecombat.connection.FirstPlayerConnectionHandler;
 import fr.gameofarkadia.safecombat.listener.*;
 import fr.gameofarkadia.safecombat.protection.ProtectionManager;
@@ -43,6 +44,7 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
   private WantedPlayersManager wantedPlayersManager;
   private CombatManager combatManager;
   private final FirstPlayerConnectionHandler firstPlayerConnectionHandler = new FirstPlayerConnectionHandler();
+  private boolean featuresEnabled = true;
 
   @Override
   public void onLoad() {
@@ -65,6 +67,11 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
     reloadConfig();
     getConfig().options().copyDefaults(true);
     saveConfig();
+
+    var modeConfig = new ModeConfiguration(getDataFolder());
+    modeConfig.reload();
+    featuresEnabled = modeConfig.isEnabled();
+    Main.logger().info("Starting SafeCombat with mode {}.", featuresEnabled ? "ENABLED" : "REDIRECT_ONLY");
 
     synchronizer.initialize();
     playerTransfertHandler = new PlayerTransfertHandler(this);
@@ -105,12 +112,14 @@ public final class Main extends JavaPlugin implements SafeCombatPlugin {
     protectionManager = new ProtectionManagerImpl(ArkadiaLib.getDatabaseManager());
 
     // Setup command, listeners and managers
-    new ProtectionCommand();
-    new AdminCommand();
-    Bukkit.getPluginManager().registerEvents(new DisconnectCombatListener(), this);
-    Bukkit.getPluginManager().registerEvents(new FightListener(), this);
-    Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
-    Bukkit.getPluginManager().registerEvents(new SafeZoneListener(), this);
+    if(featuresEnabled) {
+      new ProtectionCommand();
+      new AdminCommand();
+      Bukkit.getPluginManager().registerEvents(new DisconnectCombatListener(), this);
+      Bukkit.getPluginManager().registerEvents(new FightListener(), this);
+      Bukkit.getPluginManager().registerEvents(new SafeZoneListener(), this);
+    }
+    Bukkit.getPluginManager().registerEvents(new JoinListener(featuresEnabled), this);
   }
 
   /**

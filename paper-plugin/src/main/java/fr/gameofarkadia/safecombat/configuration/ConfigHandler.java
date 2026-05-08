@@ -18,9 +18,6 @@ import java.util.Objects;
  */
 public abstract class ConfigHandler {
 
-    /** INTERNAL folder inside the jar. */
-    private static final String DEFAULT_FOLDER = "default_configuration";
-
     private final File file;
     private MemoryConfiguration data = new MemoryConfiguration();
 
@@ -71,7 +68,7 @@ public abstract class ConfigHandler {
     }
 
     private @Nullable String readDefaultConfig() {
-        String path = DEFAULT_FOLDER + "/" + file.getName();
+        String path = file.getName();
         try(InputStream is = Main.fetchJarRessource(path)) {
             Objects.requireNonNull(is, "Could not find resource '" + path + "' in jar.");
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);
