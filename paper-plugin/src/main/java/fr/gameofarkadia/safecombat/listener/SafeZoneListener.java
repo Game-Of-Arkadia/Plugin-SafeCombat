@@ -37,18 +37,20 @@ public class SafeZoneListener implements Listener {
     boolean isBypass = event.getRegion().getFlag(WGBridge.getBypassSafeZone()) == StateFlag.State.ALLOW;
 
     if(isSafeZone && isFighting && !isBypass) {
-
-      // Push back
       event.setCancelled(true);
       Vector dir = player.getLocation().getDirection();
       dir.setY(0);
       if (dir.lengthSquared() < 1e-4) dir = new Vector(1, 0, 0);
-      Location back = player.getLocation().subtract(dir.normalize().multiply(2));
+      Vector pushDirection = dir.normalize().multiply(-1);
+      Location back = player.getLocation().add(pushDirection.clone().multiply(5));
       
-      player.setVelocity(new Vector(0, 0, 0));
+      if (back.getBlock().getType().isSolid() || back.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
+        back.add(0, 1, 0);
+      }
       pushingBack.add(player.getUniqueId());
       try {
         player.teleport(back);
+        player.setVelocity(pushDirection.multiply(1.5));
       } finally {
         pushingBack.remove(player.getUniqueId());
       }
