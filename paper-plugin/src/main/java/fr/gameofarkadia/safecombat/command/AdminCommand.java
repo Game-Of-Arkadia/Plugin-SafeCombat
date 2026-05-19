@@ -5,6 +5,7 @@ import fr.gameofarkadia.arkadialib.api.utils.DurationUtils;
 import fr.gameofarkadia.arkadialib.api.utils.DurationWrapper;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.combat.FightStopReason;
 import fr.gameofarkadia.safecombat.protection.ProtectionReason;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -22,7 +23,7 @@ import java.util.List;
  */
 public class AdminCommand extends ArkadiaCommand {
 
-  private static final List<String> ARGS = List.of("protection.disable", "protection.set", "reload");
+  private static final List<String> ARGS = List.of("protection.disable", "protection.set", "reload", "fight-mode-toggle");
 
   /**
    * Create and register command.
@@ -35,6 +36,15 @@ public class AdminCommand extends ArkadiaCommand {
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
     if (args.length == 0) {
       sender.sendMessage(Main.prefix() + "§cUnknown arg. Expected one of " + ARGS);
+      return true;
+    }
+
+    if("fight-mode-toggle".equals(args[0]) && sender instanceof Player player) {
+      if(SafeCombatAPI.isFighting(player)) {
+        SafeCombatAPI.getCombatManager().clearFightStatus(player, FightStopReason.ADMINISTRATOR);
+      } else {
+        SafeCombatAPI.getCombatManager().setStartedFight(player, false);
+      }
       return true;
     }
 
