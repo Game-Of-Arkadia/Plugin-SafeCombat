@@ -89,6 +89,8 @@ public class ProtectionManagerImpl implements ProtectionManager {
       if(task != null) {
         player.sendMessage(Main.prefix() + "§6Rappel : §eVous bénéficiez d'une protection. Vous ne pouvez§c ni attaquer, ni être attaqué§e. Pour y renoncer, faites la commande §c/protection disable§e.");
         task.updatePlayer(player);
+      } else {
+        localProtectionTasks.put(uuid, new PlayerProtectedTask(data));
       }
     });
   }
