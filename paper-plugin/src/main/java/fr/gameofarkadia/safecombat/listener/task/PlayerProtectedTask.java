@@ -80,7 +80,7 @@ public class PlayerProtectedTask implements Runnable {
    */
   public void updatePlayer(@NotNull Player player) {
     Preconditions.checkArgument(uuid.equals(player.getUniqueId()), "Player must be the same as the one of this task.");
-    bossBar.removeAll();
+    getBossBar().removeAll();
     bossBar.addPlayer(player);
   }
 
