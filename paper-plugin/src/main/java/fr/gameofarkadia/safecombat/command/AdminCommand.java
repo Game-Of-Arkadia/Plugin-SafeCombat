@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class AdminCommand extends ArkadiaCommand {
 
-  private static final List<String> ARGS = List.of("protection.disable", "protection.set", "reload", "fight-mode-toggle");
+  private static final List<String> ARGS = List.of("protection.disable", "protection.set", "reload", "fight-mode-toggle", "combat.disable");
 
   /**
    * Create and register command.
@@ -74,6 +74,17 @@ public class AdminCommand extends ArkadiaCommand {
       }
       SafeCombatAPI.getProtectionManager().removePlayerProtection(target);
       target.sendMessage(Main.prefix() + "§4Un administrateur a retiré votre protection.");
+      return true;
+    }
+
+    // Disable protection
+    if("combat.disable".equals(args[0])) {
+      if (!SafeCombatAPI.isFighting(target)) {
+        sender.sendMessage(Main.prefix() + "§cCe joueur n'est pas en train de se battre.");
+        return true;
+      }
+      SafeCombatAPI.getCombatManager().clearFightStatus(target, FightStopReason.ADMINISTRATOR);
+      target.sendMessage(Main.prefix() + "§4Un administrateur a retiré votre mode combat.");
       return true;
     }
 
