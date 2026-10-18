@@ -1,8 +1,15 @@
 package fr.gameofarkadia.safecombat.listener;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import fr.gameofarkadia.arkadialib.api.utils.Ref;
 import fr.gameofarkadia.safecombat.Main;
 import fr.gameofarkadia.safecombat.SafeCombatAPI;
+import fr.gameofarkadia.safecombat.bridge.WGBridge;
 import fr.gameofarkadia.safecombat.configuration.PvpConfiguration;
 import fr.gameofarkadia.safecombat.protection.ProtectionReason;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +86,7 @@ public class JoinListener implements Listener {
     }
 
     var connectDuration = config.getServerJoinProtectionDuration();
-    if (connectDuration.asTicks() > 0) {
+    if (connectDuration.asTicks() > 0 && canReceiveJoinProtection(player)) {
       Main.logger().info("Applying server join protection to player {} for {} seconds.", player.getName(), connectDuration.toSecondsInt());
       SafeCombatAPI.getProtectionManager().addPlayerProtection(
           player,
@@ -87,6 +94,16 @@ public class JoinListener implements Listener {
           connectDuration.asJavaDuration()
       );
     }
+  }
+
+  private boolean canReceiveJoinProtection(@NotNull Player player) {
+    RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+    RegionManager manager = container.get(BukkitAdapter.adapt(player.getWorld()));
+    if(manager == null) return true;
+
+    ApplicableRegionSet regions = manager.getApplicableRegions(BukkitAdapter.asBlockVector(player.getLocation()));
+    var state = regions.queryState(null, WGBridge.getProtectionOnJoin());
+    return state != StateFlag.State.DENY;
   }
 
 }
